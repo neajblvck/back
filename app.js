@@ -1,3 +1,4 @@
+require('dotenv').config();
  const express = require('express');
  const app = express();
  const mongoose = require('mongoose');
@@ -5,11 +6,14 @@
  const path = require('path');
 
 
+
 //  const product = require('./models/product.js');
  const bodyParser = require('body-parser');
  const productRoute = require('./router/product');
  const userRoute = require ('./router/user');
  const contentRoute = require ('./router/content');
+ const serviceRoute = require ('./router/service');
+ const chatRoute = require ('./router/chat');
 
   
 //  gestion de CORS
@@ -26,12 +30,16 @@ app.use((req, res, next) => {
  .then(() => console.log('Connexion à MongoDB réussie !'))
  .catch(() => console.log('Connexion à MongoDB échouée.. !'));
 
+
  app.use(bodyParser.json());
  app.use('/api/content', contentRoute);
  app.use('/api/auth', userRoute);
  app.use('/api/users', userRoute)
  app.use('/api/products', productRoute);
  app.use('/images', express.static(path.join(__dirname, 'images')));
+
+ app.use('/api/service', serviceRoute)
+ app.use('/chat', chatRoute);
 
 
  // test

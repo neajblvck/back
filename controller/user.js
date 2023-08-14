@@ -11,7 +11,7 @@ exports.signup = (req, res) => {
                 name: req.body.name,
                 surname: req.body.surname,
                 phone: req.body.phone,
-                email: req.body.email,
+                email: req.body.email, 
                 role: req.body.role,
                 password: hash
             });
@@ -101,22 +101,40 @@ exports.editUser = (req, res) => {
 
 
 // A CORRIGER CAR JAI FAIS DES IF POUR RIEN
+// exports.deleteUser = (req, res) => {
+//     userModel.findOne({ _id: req.params.id })
+//         .then(user => {
+//             if (req.auth.userId) {
+//                 userModel.deleteOne({ _id: req.params.id })
+//                     .then(result => res.status(200).json({ result }))
+//                     .catch(error => res.status(401).json({ error }))
+//             } else if (user._id != req.auth.userId) {
+//                 res.status(401).json({ message: 'Not authorized' });
+//             } else {
+//                 userModel.deleteOne({ _id: req.params.id })
+//                     .then(result => res.status(200).json({ result }))
+//                     .catch(error => res.status(401).json({ error }))
+//             }
+//         })
+//         .catch(error => {
+//             res.status(500).json({ error })
+//         })
+// };
+
+
 exports.deleteUser = (req, res) => {
     userModel.findOne({ _id: req.params.id })
         .then(user => {
-            if (req.auth.userId) {
+            // Vérifiez si l'utilisateur trouvé correspond à l'utilisateur authentifié
+            if (user && user._id.toString() === req.auth.userId) {
                 userModel.deleteOne({ _id: req.params.id })
                     .then(result => res.status(200).json({ result }))
-                    .catch(error => res.status(401).json({ error }))
-            } else if (user._id != req.auth.userId) {
-                res.status(401).json({ message: 'Not authorized' });
+                    .catch(error => res.status(400).json({ error }));
             } else {
-                userModel.deleteOne({ _id: req.params.id })
-                    .then(result => res.status(200).json({ result }))
-                    .catch(error => res.status(401).json({ error }))
+                res.status(401).json({ message: 'Not authorized' });
             }
         })
         .catch(error => {
             res.status(500).json({ error })
-        })
+        });
 };

@@ -1,9 +1,17 @@
 const http = require('http');
 const app = require('./app');
-require('dotenv').config();
+const threadWatcher = require('./watcher/threadWatcher');
 
 
-// envoie un port valide, qu'il soit fourni sous la forme d'un numéro ou d'une chaîne
+
+const server = http.createServer(app);
+const io = require('socket.io')(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || "http://localhost:8080",
+    methods: ["GET", "POST"]
+  }
+});
+
 const normalizePort = val => {
   const port = parseInt(val, 10);
 
@@ -15,11 +23,9 @@ const normalizePort = val => {
   }
   return false;
 };
-const port = normalizePort(process.env.PORT ||'3000');
+const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-
-// recherche les différentes erreurs et les gère de manière appropriée. Elle est ensuite enregistrée dans le serveur
 const errorHandler = error => {
   if (error.syscall !== 'listen') {
     throw error;
@@ -40,7 +46,16 @@ const errorHandler = error => {
   }
 };
 
-const server = http.createServer(app);
+io.on('connection', (socket) => {
+  console.log('Un client est connecté');
+  
+  socket.on('disconnect', () => {
+    console.log('Client déconnecté');
+  });
+});
+
+threadWatcher(io);
+
 
 server.on('error', errorHandler);
 server.on('listening', () => {

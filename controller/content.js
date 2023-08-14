@@ -1,7 +1,7 @@
 // PRODUCT CONTROLLER
 
 
-const homeModel = require('../models/content');
+const { heroModel, homeModel } = require('../models/content');
 const fs = require('fs');
 
 

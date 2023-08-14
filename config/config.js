@@ -1,14 +1,17 @@
-module.exports = {
+
+  module.exports = {
     db: {
-      host: process.env.DB_HOST || 'dzxwr0o.mongodb.net/?retryWrites=true&w=majority',
-      port: process.env.DB_PORT || 27017,
-      name: process.env.DB_NAME || 'database',
-      user: process.env.DB_USER || 'neajblvck',
-      password: process.env.DB_PASSWORD || 'neajblvck',
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT ,
+      name: process.env.DB_NAME ,
+      user: process.env.DB_USER ,
+      password: process.env.DB_PASSWORD,
     },
     jwt: {
-      secret: process.env.JWT_SECRET || 'mysecretkey',
-      expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRES_IN,
     },
+
   };
+  
   
