@@ -5,7 +5,18 @@ require('dotenv').config();
  const config = require('./config/config');
  const path = require('path');
 
+//  gestion de CORS
 
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:8080';
+
+// à modifier '*' par corsOrigin
+
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
 
 //  const product = require('./models/product.js');
  const bodyParser = require('body-parser');
@@ -16,14 +27,6 @@ require('dotenv').config();
  const chatRoute = require ('./router/chat');
 
   
-//  gestion de CORS
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  next();
-});
-
  mongoose.connect(`mongodb+srv://${config.db.user}:${config.db.password}@${config.db.name}.${config.db.host}`,
  { useNewUrlParser: true,
    useUnifiedTopology: true })

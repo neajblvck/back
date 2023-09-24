@@ -1,21 +1,50 @@
 const mongoose = require('mongoose');
 
-const homeSchema = mongoose.Schema({
-    titlePost: {type: String, required: false},
-    descriptionPost: { type: String, required: false },
-    imgPost: { type: String, required: false }
-})
+const homeSchema = new mongoose.Schema({
+    titlePost: String,
+    descriptionPost: String,
+    imgPost: String
+});
 
+const heroSchema = new mongoose.Schema({
+    imgHero: String
+});
 
+const validHexColor = {
+    type: String,
+    required: true,
+    trim: true,
+    match: /^#[0-9A-F]{6}$/i
+};
 
+const publicStyleSchema = new mongoose.Schema({
+    singleton: {
+        type: Boolean,
+        default: true,
+        unique: true
+    },
+    backgroundColor: {
+        ...validHexColor,
+    },
+    homeColor: {
+        ...validHexColor,
+    },
+    moduleColor: {
+        ...validHexColor,
+    },
+    titleColor: {
+        ...validHexColor,
+    },
+    textColor: {
+        ...validHexColor,
+    },
+    buttonColor: {
+        ...validHexColor,
+    }
+});
 
-
-const heroSchema = mongoose.Schema({
-    title: {type: String, required: false},
-    imgPost: { type: String, required: false }
-})
-
+const publicStyle = mongoose.model('publicStyle', publicStyleSchema);
 const heroModel = mongoose.model('heroModel', heroSchema);
 const homeModel = mongoose.model('homeModel', homeSchema);
 
-module.exports = { heroModel, homeModel };
+module.exports = { heroModel, homeModel, publicStyle };
