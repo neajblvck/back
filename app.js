@@ -9,6 +9,8 @@ const rateLimit = require('express-rate-limit');
 
 
 
+app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+
 
 // Middleware rate limit pour limiter les requêtes
 const limiter = rateLimit({
@@ -17,6 +19,8 @@ const limiter = rateLimit({
   message: 'Trop de requêtes depuis cette adresse IP, veuillez réessayer plus tard.',
 });
 
+// Middleware pour limiter les requêtes
+app.use(limiter);
 
 // Utilisation de Helmet pour la sécurité
 app.use(
@@ -29,8 +33,6 @@ app.use(
 );
 
 
-// Middleware pour limiter les requêtes
-app.use(limiter);
 
 
 
