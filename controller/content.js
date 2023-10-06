@@ -30,7 +30,6 @@ exports.getContent = (req, res) => {
 
 exports.postContent = (req, res) =>{
 
-    console.log('postcontent???????????????')
 
 
     const postObject = Object.keys(req.files).length > 0 ? {

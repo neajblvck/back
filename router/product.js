@@ -7,24 +7,30 @@ const multer = require('../middleware/multer-config');
 
 const productController = require('../controller/product');
 
+// Routes pour les Catégories
+router.post('/categories', productController.createCategory); 
+router.get('/categories', productController.getAllCategories);
+router.put('/categories/:id', productController.updateCategory);
+router.delete('/categories/:id', productController.deleteCategory);
 
+router.put('/products/move', productController.moveProductsToCategory);
+router.put('/products/copy', productController.copyProductsToCategory);
+router.put('/products/remove', productController.removeProductFromCategory);
 
-// Route pour créer un nouveau produit
+// Route PRODUIT
 router.post('/', multer, productController.createProduct);
-
-// Route pour récupérer un produit par son id
 router.get ('/:id', productController.getOneProduct);
-
-// Route pour récupérer tous les produits
 router.get ('/', productController.getAllProduct);
-
-// Route pour mettre à jour un produit existant
-// router.put ('/:id', authMiddleware, multer, productController.editProduct);
-
-// Route pour mettre à jour un produit existant de façon incomplète
 router.patch('/:id', multer, productController.editProduct);
-
-// Route pour supprimer un produit existant
 router.delete('/:id', productController.deleteProduct);
- 
+
+// Route ordre OPTION
+router.post('/options', productController.createOption);
+router.delete('/options/:id', productController.deleteOption);
+router.put('/options/:id/options-order', productController.updateOptionsOrder);
+
+
+
+
+
 module.exports = router;

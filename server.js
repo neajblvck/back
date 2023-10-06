@@ -7,7 +7,7 @@ const threadWatcher = require('./watcher/threadWatcher');
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:8080",
+    origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST"]
   }
 });
