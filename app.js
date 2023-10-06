@@ -10,14 +10,10 @@ const rateLimit = require('express-rate-limit');
 
 
 
-
-// Activer la confiance au proxy
-app.set('trust proxy', true);
-
 // Middleware rate limit pour limiter les requêtes
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 150, // Limite de requêtes par IP pendant la période spécifiée
+  windowMs: 30 * 60 * 1000, // 15 minutes
+  max: 500, // Limite de requêtes par IP pendant la période spécifiée
   message: 'Trop de requêtes depuis cette adresse IP, veuillez réessayer plus tard.',
 });
 
