@@ -11,7 +11,8 @@ const rateLimit = require('express-rate-limit');
 
 
 
-
+// Activer la confiance au proxy
+app.set('trust proxy', true);
 
 // Middleware rate limit pour limiter les requêtes
 const limiter = rateLimit({
