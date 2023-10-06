@@ -9,18 +9,18 @@ const rateLimit = require('express-rate-limit');
 
 
 
-app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+// app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
 
-// Middleware rate limit pour limiter les requêtes
-const limiter = rateLimit({
-  windowMs: 30 * 60 * 1000, // 15 minutes
-  max: 500, // Limite de requêtes par IP pendant la période spécifiée
-  message: 'Trop de requêtes depuis cette adresse IP, veuillez réessayer plus tard.',
-});
+// // Middleware rate limit pour limiter les requêtes
+// const limiter = rateLimit({
+//   windowMs: 30 * 60 * 1000, // 15 minutes
+//   max: 500, // Limite de requêtes par IP pendant la période spécifiée
+//   message: 'Trop de requêtes depuis cette adresse IP, veuillez réessayer plus tard.',
+// });
 
-// Middleware pour limiter les requêtes
-app.use(limiter);
+// // Middleware pour limiter les requêtes
+// app.use(limiter);
 
 // Utilisation de Helmet pour la sécurité
 app.use(
