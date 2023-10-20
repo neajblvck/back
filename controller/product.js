@@ -1,8 +1,9 @@
 // CATEGORY & PRODUCT CONTROLLER
 
 
-const {Product, Category, Option} = require('../models/product');
+const {Product, Category, Option, Ensemble} = require('../models/product');
 const fs = require('fs');
+const mongoose = require('mongoose');
 
 exports.createOption = (req, res) => {
     const option = new Option({
@@ -39,7 +40,7 @@ exports.deleteOption = (req, res) => {
 // Contrôleur pour modifier l'ordre des options
 exports.updateOptionsOrder = (req, res) => {
     const productId = req.params.id;
-    const newOptionsOrder = req.body.optionsOrder; // Assurez-vous que ce tableau contient les ID d'options dans le nouvel ordre souhaité.
+    const newOptionsOrder = req.body.optionsOrder;
 
     Product.findById(productId)
         .then(product => {
@@ -55,15 +56,69 @@ exports.updateOptionsOrder = (req, res) => {
 };
 
 
+// ENSEMBLE CONTROLLER
+exports.createEnsemble = (req, res) => {
+    const ensemble = new Ensemble({
+        name: req.body.name,
+        categoryIds: req.body.categoryIds || []
+    });
 
+    ensemble.save()
+        .then(() => res.status(201).json({ message: 'Ensemble créé avec succès !' }))
+        .catch(error => res.status(400).json({ error }));
+};
+
+exports.getAllEnsembles = (req, res) => {
+    Ensemble.find()
+        .populate('categoryIds') // Récupérer les détails des catégories
+        .then(ensembles => res.json(ensembles))
+        .catch(error => res.status(500).json({ error }));
+};
+
+exports.getEnsembleById = (req, res) => {
+    Ensemble.findById(req.params.id)
+        .populate('categoryIds') // Récupérer les détails des catégories
+        .then(ensemble => {
+            if (!ensemble) {
+                return res.status(404).json({ message: 'Ensemble non trouvé' });
+            }
+            res.json(ensemble);
+        })
+        .catch(error => res.status(500).json({ error }));
+};
+
+exports.updateEnsemble = (req, res) => {
+    Ensemble.updateOne({ _id: req.params.id }, req.body)
+        .then(() => res.status(200).json({ message: 'Ensemble mis à jour avec succès !' }))
+        .catch(error => res.status(400).json({ error }));
+};
+
+exports.deleteEnsemble = (req, res) => {
+    Ensemble.deleteOne({ _id: req.params.id })
+        .then(() => res.status(200).json({ message: 'Ensemble supprimé avec succès !' }))
+        .catch(error => res.status(400).json({ error }));
+};
+
+exports.addCategoryToEnsemble = (req, res) => {
+    const categoryId = req.body.categoryId;
+
+    Ensemble.findByIdAndUpdate(
+        req.params.id,
+        { $addToSet: { categoryIds: categoryId } }, // $addToSet garantit que categoryId est unique
+        { new: true }
+    )
+    .populate('categoryIds')
+    .then(ensemble => res.status(200).json(ensemble))
+    .catch(error => res.status(400).json({ error }));
+};
+
+// CATEGORY CONTROLLER
 
 exports.createCategory = (req, res) => {
-    console.log(req.body)
     const category = new Category({
         titleCategory: req.body.titleCategory,
         products: req.body.products
     });
-    console.log(category)
     category.save()
         .then(() => res.status(201).json({ message: 'Catégorie créée avec succès !' }))
         .catch(error => res.status(400).json({ error }));
@@ -93,13 +148,84 @@ exports.getCategoryById = (req, res) => {
         });
 },
 
-exports.updateCategory = (req, res) => {
-    const categoryObject = { ...req.body };
+// exports.addProductToCategory = (req, res) => {
+//     const productObject = {...req.body}
+//     if (isNaN(productObject.prixMenu)){
+//         delete productObject.prixMenu
+//     }
+//     const product = new Product({
+//         ...productObject,
+//         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.files['image'][0].filename}`
+//     });
     
-    Category.updateOne({ _id: req.params.id }, { ...categoryObject, _id: req.params.id })
-        .then(() => res.status(200).json({ message: 'Catégorie mise à jour avec succès !' }))
-        .catch(error => res.status(400).json({ error }));
+//     product.save()
+//         .then(savedProduct => {
+//             console.log(savedProduct)
+//             console.log(req.params)
+//             return Category.updateOne(
+//                 { _id: req.params.id }, 
+//                 { $push: { products: savedProduct._id } }
+//             )
+//             .then(() => {
+//                 res.status(200).json({ message: 'Produit ajouté avec succès à la catégorie!', product: savedProduct });
+//             });
+//         })
+//         .catch(error => {
+//             // Gérez les erreurs
+//             res.status(500).json({ error: 'Il y a eu une erreur lors de l\'ajout du produit.' });
+//         });
+// };
+
+
+
+
+exports.addProductToCategory = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const productObject = {...req.body};
+        
+        if (isNaN(productObject.prixMenu)){
+            delete productObject.prixMenu;
+        }
+
+        const product = new Product({
+            ...productObject,
+            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.files['image'][0].filename}`
+        });
+        
+        const savedProduct = await product.save({ session });
+
+        await Category.updateOne(
+            { _id: req.params.id }, 
+            { $push: { products: savedProduct._id } },
+            { session }
+        );
+
+        await session.commitTransaction();
+        session.endSession();
+
+        res.status(200).json({ message: 'Produit ajouté avec succès à la catégorie!', product: savedProduct });
+    } catch (error) {
+        console.log(error)
+        await session.abortTransaction();
+        session.endSession();
+
+        res.status(500).json({ error: 'Il y a eu une erreur lors de l\'ajout du produit.' });
+    }
 };
+
+
+exports.updateCategory = (req, res) => {
+    const newTitle = req.body.titleCategory;
+    const productIds = Object.values(req.body.productsOrder);
+    
+    Category.updateOne({ _id: req.params.id }, { titleCategory: newTitle, products: productIds})
+            .then(() => res.status(200).json({ message: 'Catégorie modifiée avec succès !' }))
+            .catch(error => res.status(400).json({ error }));
+};
+
 
 
 exports.deleteCategory = (req, res) => {
@@ -205,7 +331,6 @@ exports.createProduct = (req,res) => {
     product.save()
         .then((product) => res.status(201).json({ message: 'Objet enregistré !', product}))
         .catch(error => res.status(400).json({ error }));
-
 };
 
 exports.getOneProduct = (req, res) => {
@@ -246,16 +371,12 @@ exports.getAllProduct = (req, res) =>{
 
 exports.editProduct = (req, res) =>{
 
-
     const productObject = Object.keys(req.files).length > 0 ? {
         ...req.body,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.files['image'][0].filename}`
     }:{ 
         ...req.body,
     }
-
-
-  
 
     Product.findOne({_id: req.params.id})
         .then((product) => {

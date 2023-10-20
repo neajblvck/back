@@ -7,7 +7,17 @@ const multer = require('../middleware/multer-config');
 
 const productController = require('../controller/product');
 
+
+
+// Routes pour les Ensemble
+router.post('/ensemble', productController.createEnsemble); 
+router.get('/ensemble', productController.getAllEnsembles);
+router.put('/ensemble/:id', productController.updateEnsemble);
+router.delete('/ensemble/:id', productController.deleteEnsemble);
+
+
 // Routes pour les Catégories
+router.post('/addToCategory/:id', multer, productController.addProductToCategory); 
 router.post('/categories', productController.createCategory); 
 router.get('/categories', productController.getAllCategories);
 router.put('/categories/:id', productController.updateCategory);

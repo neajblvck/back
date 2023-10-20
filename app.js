@@ -32,8 +32,7 @@ app.use(
   })
 );
 
-
-
+mongoose.set('strictQuery', false);  // Pour désactiver strictQuery
 
 
 // Gestion de CORS
@@ -56,7 +55,7 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => console.log('Connexion à MongoDB réussie !'))
-  .catch(() => console.log('Connexion à MongoDB échouée.. !'));
+  .catch((err) => console.log('Connexion à MongoDB échouée.. !', err));
 
 // Utilisation de bodyParser
 const bodyParser = require('body-parser');
