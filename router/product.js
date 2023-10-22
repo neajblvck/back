@@ -3,6 +3,9 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
+const deleteImage = require('../middleware/deleteImage');
+const {Product, Category} = require('../models/product');
+
 const multer = require('../middleware/multer-config');
 
 const productController = require('../controller/product');
@@ -32,7 +35,7 @@ router.post('/', multer, productController.createProduct);
 router.get ('/:id', productController.getOneProduct);
 router.get ('/', productController.getAllProduct);
 router.patch('/:id', multer, productController.editProduct);
-router.delete('/:id', productController.deleteProduct);
+router.delete('/:id', deleteImage(Product, 'imageUrl'), productController.deleteProduct);
 
 // Route ordre OPTION
 router.post('/options', productController.createOption);

@@ -8,14 +8,6 @@ const optionSchema = new mongoose.Schema({
 
  const Option = mongoose.model('Option', optionSchema);
 
-
- const menuSchema = new mongoose.Schema({
-    nom: String,
-    produits: [{type: mongoose.Schema.Types.ObjectId, ref: 'Produit'}],
-    prix: Number,
- });
- const Menu = mongoose.model('Menu', menuSchema);
-
 // Modèle de produit
 const productSchema = mongoose.Schema({
     nameProduct: {type: String, required : true},
@@ -39,6 +31,7 @@ const categorySchema = new mongoose.Schema({
           ref: 'Product'
       }],
       set: ids => [...new Set(ids.map(id => id.toString()))] 
+      
   }
 });
 
@@ -58,4 +51,4 @@ const categorySchema = new mongoose.Schema({
 
 
 
-module.exports = {Product, Category, Option, Ensemble, Menu}
+module.exports = {Product, Category, Option, Ensemble}

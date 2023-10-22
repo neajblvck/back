@@ -120,7 +120,7 @@ exports.createCategory = (req, res) => {
         products: req.body.products
     });
     category.save()
-        .then(() => res.status(201).json({ message: 'Catégorie créée avec succès !' }))
+        .then((createdCategory) => res.status(201).json({ message: 'Catégorie créée avec succès !', createdCategory }))
         .catch(error => res.status(400).json({ error }));
 };
 
@@ -405,19 +405,33 @@ exports.editProduct = (req, res) =>{
 }
 
 
- exports.deleteProduct = (req, res) => {
-    Product.findOne({ _id: req.params.id})
-        .then(product => {
-                const filename = product.imageUrl.split('/images/')[1];
-                fs.unlink(`images/${filename}`, () => {
-                    product.deleteOne({_id: req.params.id})
-                        .then(() => { res.status(200).json({message: 'Objet supprimé !'})})
-                        .catch(error => res.status(401).json({ error }));
-                });
+//  exports.deleteProduct = (req, res) => {
+//     Product.findOne({ _id: req.params.id})
+//         .then(product => {
+//                 const filename = product.imageUrl.split('/images/')[1];
+//                 fs.unlink(`images/${filename}`, () => {
+//                     product.deleteOne({_id: req.params.id})
+//                         .then(() => { res.status(200).json({message: 'Objet supprimé !'})})
+//                         .catch(error => res.status(401).json({ error }));
+//                 });
             
+//         })
+//         .catch( error => {
+//             res.status(500).json({ error });
+//         });
+//  };
+
+
+exports.deleteProduct = (req, res, next) => {
+    Product.findOne({ _id: req.params.id })
+        .then(product => {
+            req.imageUrlToDelete = product.imageUrl; // définir l'URL de l'image à supprimer
+            console.log("Trouvé le produit avec l'URL d'image :", product.imageUrl);
+
+            product.deleteOne({_id: req.params.id})
+                .then(() => res.status(200).json({ message: 'Objet supprimé !' }))
+                .catch(error => res.status(400).json({ error }));
         })
-        .catch( error => {
-            res.status(500).json({ error });
-        });
- };
+        .catch(error => res.status(500).json({ error }));
+};
 
