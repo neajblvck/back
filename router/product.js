@@ -21,7 +21,7 @@ router.delete('/ensemble/:id', productController.deleteEnsemble);
 
 // Routes pour les Catégories
 router.post('/addToCategory/:id', multer, productController.addProductToCategory); 
-router.post('/categories', productController.createCategory); 
+router.post('/categories', multer, productController.createCategory); 
 router.get('/categories', productController.getAllCategories);
 router.put('/categories/:id', productController.updateCategory);
 router.delete('/categories/:id', productController.deleteCategory);

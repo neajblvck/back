@@ -117,7 +117,9 @@ exports.addCategoryToEnsemble = (req, res) => {
 exports.createCategory = (req, res) => {
     const category = new Category({
         titleCategory: req.body.titleCategory,
-        products: req.body.products
+        descriptionCategory: req.body.deleteCategory,
+        products: req.body.products,
+        imgCategory: `${req.protocol}://${req.get('host')}/images/${req.files['imgCategory'][0].filename}`
     });
     category.save()
         .then((createdCategory) => res.status(201).json({ message: 'Catégorie créée avec succès !', createdCategory }))

@@ -38,8 +38,10 @@ mongoose.set('strictQuery', false);  // Pour désactiver strictQuery
 // Gestion de CORS
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:8080';
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! à modifier * par corsOrigin
+
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization'

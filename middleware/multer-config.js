@@ -80,6 +80,7 @@ module.exports = multer({
     { name: 'imgHero', maxCount: 1 },
     { name: 'image', maxCount: 1 },
     { name: 'imgPost', maxCount: 1 },
+    { name: 'imgCategory', maxCount: 1 },
     // { name: 'imgPromo3', maxCount: 1 },
 ]);
 

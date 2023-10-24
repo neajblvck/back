@@ -25,6 +25,8 @@ const Product = mongoose.model('Product', productSchema);
 // Modèle de catégorie de produit
 const categorySchema = new mongoose.Schema({
   titleCategory: {type: String, required : true},
+  descriptionCategory: {type: String, required : false},
+  imgCategory: {type: String, required : false},
   products: {
       type: [{
           type: mongoose.Schema.Types.ObjectId,
