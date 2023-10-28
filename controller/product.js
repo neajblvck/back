@@ -229,6 +229,38 @@ exports.updateCategory = (req, res) => {
 };
 
 
+exports.editCategory = (req, res) => {
+    const categoryObject = Object.keys(req.files).length > 0 ? {
+        ...req.body,
+        imgCategory: `${req.protocol}://${req.get('host')}/images/${req.files['imgCategory'][0].filename}`
+    }:{ 
+        ...req.body,
+    }
+    
+    Category.findOne({_id: req.params.id})
+        .then((category) => {
+
+                Category.updateOne({ _id: req.params.id}, { ...categoryObject, _id: req.params.id})
+                .then((modif) => {
+                    if (Object.keys(req.files).length > 0) {
+                        const filename = category.imgCategory.split('/images/')[1]
+                        fs.unlink(`images/${filename}`, (err) => {
+                            if (err) {
+                                console.log("Error deleting image: ", err);
+                            }
+                        });
+                    }
+                    res.status(200).json({ modif });
+                })
+                .catch(error => res.status(401).json({ error }));
+            
+        })
+        .catch((error) => {
+            res.status(400).json({ error });
+        }); 
+}
+
+
 
 exports.deleteCategory = (req, res) => {
     Category.deleteOne({ _id: req.params.id })
@@ -379,7 +411,7 @@ exports.editProduct = (req, res) =>{
     }:{ 
         ...req.body,
     }
-
+    
     Product.findOne({_id: req.params.id})
         .then((product) => {
             // if (product.userId != req.auth.userId) {
