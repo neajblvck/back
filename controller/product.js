@@ -127,7 +127,9 @@ exports.createCategory = (req, res) => {
 };
 
 exports.getAllCategories = (req, res) => {
-    Category.find().populate('products')
+    Category.find()
+        .sort('orderCategory') // Trie les catégories par orderCategory
+        .populate('products')
         .then(categories => {
             res.json(categories);
         })
@@ -135,6 +137,7 @@ exports.getAllCategories = (req, res) => {
             res.status(500).send({ message: 'Erreur lors de la récupération des catégories' });
         });
 },
+
 
 
 exports.getCategoryById = (req, res) => {
@@ -218,12 +221,35 @@ exports.addProductToCategory = async (req, res) => {
     }
 };
 
+exports.updateCategoryOrder = (req, res) => {
+    const orderedCategoryIds = req.body
+    if (!orderedCategoryIds || !Array.isArray(orderedCategoryIds)) {
+        return res.status(400).send({ message: 'Le tableau orderedCategoryIds est requis.' });
+    }
 
-exports.updateCategory = (req, res) => {
-    const newTitle = req.body.titleCategory;
+    const updatePromises = orderedCategoryIds.map((categoryId, index) => {
+        return Category.findByIdAndUpdate(categoryId, { orderCategory: index }).exec();
+    });
+
+    Promise.all(updatePromises)
+        .then(() => {
+            res.send({ message: 'Ordre mis à jour avec succès !' });
+        })
+        .catch(error => {
+            if (error.code && error.code === 11000) {
+                res.status(400).send({ message: 'Erreur: La valeur orderCategory doit être unique.' });
+            } else {
+                res.status(500).send({ message: 'Erreur lors de la mise à jour des catégories.' });
+            }
+        });
+};
+
+
+exports.updateProductOrder = (req, res) => {
+    // const newTitle = req.body.titleCategory;
     const productIds = Object.values(req.body.productsOrder);
     
-    Category.updateOne({ _id: req.params.id }, { titleCategory: newTitle, products: productIds})
+    Category.updateOne({ _id: req.params.id }, { products: productIds})
             .then(() => res.status(200).json({ message: 'Catégorie modifiée avec succès !' }))
             .catch(error => res.status(400).json({ error }));
 };

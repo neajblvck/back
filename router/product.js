@@ -25,8 +25,9 @@ router.post('/categories', multer, productController.createCategory);
 router.get('/categories', productController.getAllCategories);
 router.put('/categories/:id', multer, productController.editCategory);
 router.delete('/categories/:id', productController.deleteCategory);
+router.put('/updateCategoriesOrder', productController.updateCategoryOrder);
 
-router.put('/order/:id', productController.updateCategory);
+router.put('/order/:id', productController.updateProductOrder);
 router.put('/products/move', productController.moveProductsToCategory);
 router.put('/products/copy', productController.copyProductsToCategory);
 router.put('/products/remove', productController.removeProductFromCategory);
