@@ -8,6 +8,8 @@ const fs = require('fs');
 
 exports.createPost = (req,res) => {
 
+    console.log('home')
+
     const postObject = {...req.body}
 
     const post = new homeModel({

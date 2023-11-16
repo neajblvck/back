@@ -10,7 +10,19 @@ const multer = require('../middleware/multer-config');
 
 const productController = require('../controller/product');
 
+// Routes pour les Options
+router.post('/options', authMiddleware, multer, productController.createOption); 
+router.get('/options', productController.getAllOptions);
+router.get('/options/:id', productController.getOptionById);
+router.patch('/options/:id', authMiddleware, multer, productController.updateOption);
+router.delete('/options/:id', authMiddleware, productController.deleteOption);
 
+router.post('/options/addToProduct/:id', authMiddleware, productController.addOptionToProduct);
+
+// Routes pour les Choix au sein d'une Option
+router.post('/options/:optionId/choices', authMiddleware, productController.addChoiceToOption); 
+router.patch('/options/:optionId/choices/:choiceId', authMiddleware, productController.updateChoice);
+router.delete('/options/:optionId/choices/:choiceId', authMiddleware, productController.deleteChoice);
 
 // Routes pour les Ensemble
 router.post('/ensemble', productController.createEnsemble); 
@@ -38,12 +50,6 @@ router.get ('/:id', productController.getOneProduct);
 router.get ('/', productController.getAllProduct);
 router.patch('/:id', multer, productController.editProduct);
 router.delete('/:id', productController.deleteProduct, deleteImage(Product, 'imageUrl'));
-
-// Route ordre OPTION
-router.post('/options', productController.createOption);
-router.delete('/options/:id', productController.deleteOption);
-router.put('/options/:id/options-order', productController.updateOptionsOrder);
-
 
 
 

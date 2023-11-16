@@ -6,35 +6,193 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 
 exports.createOption = (req, res) => {
-    const option = new Option({
-        nom: req.body.nom,
-        prix: req.body.prix
+    const { name, productList, choices } = req.body;
+    console.log(productList)
+
+    const newOption = new Option({
+        name,
+        choices: choices.map(choice => ({
+            choiceType: choice.choiceType,
+            choiceItem: choice.choiceItem,
+            choiceName: choice.choiceName,
+            additionalCost: choice.additionalCost
+        }))
     });
 
-    option.save()
+    newOption.save()
         .then(savedOption => {
-            res.status(201).json(savedOption);
+            console.log('option saved', savedOption)
+            // Si productList est fourni, mettez à jour les produits correspondants
+            if (productList && productList.length > 0) {
+                return Product.updateMany(
+                    { _id: { $in: productList } },
+                    { $push: { options: savedOption._id } }
+                );
+            }
+            return savedOption;
+        })
+        .then(result => {
+            res.status(201).json({ message: 'Nouvelle option ajoutée avec succès', option: result });
         })
         .catch(error => {
-            res.status(500).json({ message: "Erreur lors de l'ajout de l'option.", error: error.message });
+            res.status(500).json({ message: 'Erreur lors de l\'ajout de l\'option', error: error.message });
         });
 };
-
 
 exports.deleteOption = (req, res) => {
     const optionId = req.params.id;
 
     Option.findByIdAndRemove(optionId)
-        .then(deletedOption => {
-            if (!deletedOption) {
-                return res.status(404).json({ message: "Option introuvable." });
+        .then(option => {
+            if (!option) {
+                return res.status(404).json({ message: "Option non trouvée" });
             }
-            res.status(200).json({ message: "Option supprimée avec succès." });
+            // Option trouvée et supprimée, maintenant retirez cette option des produits
+            return Product.updateMany(
+                { options: optionId },
+                { $pull: { options: optionId } }
+            );
+        })
+        .then(() => {
+            res.status(200).json({ message: "Option supprimée avec succès" });
         })
         .catch(error => {
-            res.status(500).json({ message: "Erreur lors de la suppression de l'option.", error: error.message });
+            res.status(500).json({ message: "Erreur lors de la suppression de l'option", error: error.message });
         });
 };
+
+
+exports.addOptionToProduct = (req, res) => {
+    // ID du produit et de l'option provenant de la requête (par exemple, via le corps de la requête ou les paramètres)
+    const { productId, optionId } = req.body; 
+
+    // Trouver le produit par son ID
+    Product.findById(productId)
+        .then(product => {
+            if (!product) {
+                return res.status(404).json({ message: "Produit non trouvé" });
+            }
+
+            // Vérifier si l'option existe déjà dans le produit
+            if (product.options.includes(optionId)) {
+                return res.status(400).json({ message: "Cette option est déjà ajoutée au produit" });
+            }
+
+            // Ajouter l'option au produit
+            product.options.push(optionId);
+
+            // Sauvegarder les modifications sur le produit
+            return product.save();
+        })
+        .then(savedProduct => {
+            res.status(200).json({ message: "Option ajoutée avec succès", product: savedProduct });
+        })
+        .catch(error => {
+            res.status(500).json({ message: "Erreur lors de l'ajout de l'option", error: error.message });
+        });
+};
+
+
+
+  
+  exports.getAllOptions = (req, res) => {
+    Option.find()
+      .then(options => res.status(200).json(options))
+      .catch(error => res.status(500).json({ error }));
+  };
+
+  exports.getOptionById = (req, res) => {
+    Option.findById(req.params.id)
+      .then(option => {
+        if (!option) {
+          return res.status(404).json({ message: 'Option not found.' });
+        }
+        res.status(200).json(option);
+      })
+      .catch(error => res.status(500).json({ error }));
+  };
+
+  
+  exports.updateOption = (req, res) => {
+    Option.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
+      .then(updatedOption => {
+        if (!updatedOption) {
+          return res.status(404).json({ message: 'Option not found.' });
+        }
+        res.status(200).json(updatedOption);
+      })
+      .catch(error => res.status(400).json({ error }));
+  };
+
+  
+  exports.deleteOption = (req, res) => {
+    Option.findByIdAndRemove(req.params.id)
+      .then(deletedOption => {
+        if (!deletedOption) {
+          return res.status(404).json({ message: 'Option not found.' });
+        }
+        res.status(200).json({ message: 'Option deleted successfully.' });
+      })
+      .catch(error => res.status(500).json({ error }));
+  };
+
+  
+  exports.addChoiceToOption = (req, res) => {
+    const choice = {
+      choiceType: req.body.choiceType,
+      choiceItem: req.body.choiceItem,
+      additionalCost: req.body.additionalCost
+    };
+  
+    Option.findById(req.params.optionId)
+      .then(option => {
+        if (!option) {
+          return res.status(404).json({ message: 'Option not found.' });
+        }
+        option.choices.push(choice);
+        return option.save();
+      })
+      .then(updatedOption => res.status(201).json(updatedOption))
+      .catch(error => res.status(400).json({ error }));
+  };
+
+  exports.updateChoice = (req, res) => {
+    Option.findById(req.params.optionId)
+      .then(option => {
+        if (!option) {
+          return res.status(404).json({ message: 'Option not found.' });
+        }
+        const choice = option.choices.id(req.params.choiceId);
+        if (!choice) {
+          return res.status(404).json({ message: 'Choice not found.' });
+        }
+        choice.choiceType = req.body.choiceType || choice.choiceType;
+        choice.choiceItem = req.body.choiceItem || choice.choiceItem;
+        choice.additionalCost = req.body.additionalCost || choice.additionalCost;
+        return option.save();
+      })
+      .then(updatedOption => res.status(200).json(updatedOption))
+      .catch(error => res.status(400).json({ error }));
+  };
+
+  
+  exports.deleteChoice = (req, res) => {
+    Option.findById(req.params.optionId)
+      .then(option => {
+        if (!option) {
+          return res.status(404).json({ message: 'Option not found.' });
+        }
+        const choice = option.choice.id(req.params.choiceId);
+        if (!choice) {
+          return res.status(404).json({ message: 'Choice not found.' });
+        }
+        choice.remove();
+        return option.save();
+      })
+      .then(updatedOption => res.status(200).json({ message: 'Choice deleted successfully.' }))
+      .catch(error => res.status(500).json({ error }));
+  };
+  
 
 
 // Contrôleur pour modifier l'ordre des options
@@ -115,6 +273,7 @@ exports.addCategoryToEnsemble = (req, res) => {
 // CATEGORY CONTROLLER
 
 exports.createCategory = (req, res) => {
+    console.log('cat')
     const category = new Category({
         titleCategory: req.body.titleCategory,
         descriptionCategory: req.body.deleteCategory,
@@ -129,7 +288,13 @@ exports.createCategory = (req, res) => {
 exports.getAllCategories = (req, res) => {
     Category.find()
         .sort('orderCategory') // Trie les catégories par orderCategory
-        .populate('products')
+        .populate({
+            path: 'products', // Peuple d'abord les produits
+            populate: { 
+                path: 'options', // Ensuite, peuple les options de chaque produit
+                model: 'Option' // Assurez-vous que c'est le nom correct de votre modèle d'option
+            }
+        })
         .then(categories => {
             res.json(categories);
         })
@@ -396,12 +561,14 @@ exports.createProduct = (req,res) => {
 exports.getOneProduct = (req, res) => {
     const id = req.params.id;
     Product.findOne({_id: id})
+    .populate('options')
     .then((product)  => { return res.status(200).json({product})})
     .catch((error) => { return res.status(404).json({error})});
 }
 
 exports.getAllProduct = (req, res) =>{
     Product.find()
+    .populate('options')
     .then((Allproduct)  => { return res.status(200).json({Allproduct})})
     .catch((error) => { return res.status(400).json({error})});
 } 
