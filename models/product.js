@@ -41,6 +41,7 @@ const productSchema = mongoose.Schema({
   prixProduct: { type: Number, required: true },
   prixMenu: { type: Number, required: false },
   available: { type: Boolean, required: true },
+  customProduct: {type: String, required: false},
   options: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Option' }],
   optionsOrder: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Option' }]
 })
