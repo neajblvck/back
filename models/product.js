@@ -1,19 +1,15 @@
 const mongoose = require('mongoose');
 
 const ChoiceSchema = new mongoose.Schema({
-  choiceType: {
-    type: String,
-    required: true,
-    enum: ['Product', 'CustomChoice'],
-  },
+  
   choiceItem: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,
-    refPath: 'optionProducts.choiceType',
-  },
+    refPath: 'choiceType', 
+},
   choiceName: { 
     type: String,
-    required: true,
+    required: false,
   },
   additionalCost: {
     type: Number,
@@ -29,9 +25,14 @@ const OptionSchema = new mongoose.Schema({
   multiply: {type: Number, required: false},
   extraCost: {type: Number, required: false},
   choices: [ChoiceSchema],
+  choiceType: {
+    type: String,
+    required: true,
+    enum: ['Product', 'CustomChoice'],
+}
 });
 
-const Option = mongoose.model('Option', OptionSchema);
+const Options = mongoose.model('Options', OptionSchema);
 
 // Modèle de produit
 const productSchema = mongoose.Schema({
@@ -39,11 +40,13 @@ const productSchema = mongoose.Schema({
   descriptionProduct: { type: String, required: true },
   imageUrl: { type: String, required: true },
   prixProduct: { type: Number, required: true },
-  prixMenu: { type: Number, required: false },
   available: { type: Boolean, required: true },
-  customProduct: {type: String, required: false},
-  options: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Option' }],
-  optionsOrder: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Option' }]
+  customProducts: [{
+    choice: { type: String, required: true },
+    additionalCost: { type: Number, required: true, default: 0 },
+  }],
+  options: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Options' }],
+  optionsOrder: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Options' }]
 })
 
 const Product = mongoose.model('Product', productSchema);
@@ -86,4 +89,4 @@ const Ensemble = mongoose.model('Ensemble', ensembleSchema);
 
 
 
-module.exports = { Product, Category, Option, Ensemble }
+module.exports = { Product, Category, Options, Ensemble }

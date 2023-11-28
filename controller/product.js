@@ -1,48 +1,114 @@
 // CATEGORY & PRODUCT CONTROLLER
 
 
-const {Product, Category, Option, Ensemble} = require('../models/product');
+const { Product, Category, Options, Ensemble } = require('../models/product');
 const fs = require('fs');
 const mongoose = require('mongoose');
 
-exports.createOption = (req, res) => {
-    const { name, productList, choices } = req.body;
-    console.log(productList)
+// exports.createOption = (req, res) => {
+//     const { name, choiceType, customChoices, productChoices, productList } = req.body;
 
-    const newOption = new Option({
-        name,
-        choices: choices.map(choice => ({
-            choiceType: choice.choiceType,
-            choiceItem: choice.choiceItem,
-            choiceName: choice.choiceName,
-            additionalCost: choice.additionalCost
-        }))
-    });
+//     // Validation des données reçues
+//     if (!name || !choiceType) {
+//         return res.status(400).json({ message: "Nom de l'option et type de choix sont requis." });
+//     }
 
-    newOption.save()
-        .then(savedOption => {
-            console.log('option saved', savedOption)
-            // Si productList est fourni, mettez à jour les produits correspondants
-            if (productList && productList.length > 0) {
-                return Product.updateMany(
-                    { _id: { $in: productList } },
-                    { $push: { options: savedOption._id } }
-                );
-            }
-            return savedOption;
-        })
-        .then(result => {
-            res.status(201).json({ message: 'Nouvelle option ajoutée avec succès', option: result });
-        })
-        .catch(error => {
-            res.status(500).json({ message: 'Erreur lors de l\'ajout de l\'option', error: error.message });
+//     if (choiceType === 'CustomChoice' && !Array.isArray(customChoices)) {
+//         return res.status(400).json({ message: "Les choix personnalisés doivent être un tableau." });
+//     }
+
+//     if (choiceType === 'Product' && !Array.isArray(productChoices)) {
+//         return res.status(400).json({ message: "Les choix de produit doivent être un tableau." });
+//     }
+
+//     // Création de l'option
+//     let newOption = new Options({
+//         name,
+//         choiceType,
+//         choices: choiceType === 'CustomChoice' ? customChoices : productChoices
+//     });
+
+//     // Sauvegarde de l'option dans la base de données
+//     newOption.save()
+//         .then(savedOption => {
+//             // Si productList est fourni, mettre à jour les produits correspondants
+//             if (Array.isArray(productList) && productList.length > 0) {
+//                 return Product.updateMany(
+//                     { _id: { $in: productList } },
+//                     { $push: { options: savedOption._id } }
+//                 );
+//             }
+//             return savedOption;
+//         })
+//         .then(result => {
+//             // Réponse en cas de succès
+//             const message = Array.isArray(productList) && productList.length > 0
+//                 ? 'Option créée et ajoutée aux produits avec succès.'
+//                 : 'Option créée avec succès.';
+//             res.status(201).json({ message, option: result });
+//         })
+//         .catch(error => {
+//             // Gestion des erreurs
+//             res.status(500).json({ message: 'Erreur lors de la création de l\'option', error: error.message });
+//         });
+// };
+
+exports.createOption = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const { name, choiceType, customChoices, productChoices, productList } = req.body;
+
+        // Validation des données
+        if (!name || !choiceType) {
+            throw new Error("Nom de l'option et type de choix sont requis.");
+        }
+
+        if (choiceType === 'CustomChoice' && !Array.isArray(customChoices)) {
+            throw new Error("Les choix personnalisés doivent être un tableau.");
+        }
+
+        if (choiceType === 'Product' && !Array.isArray(productChoices)) {
+            throw new Error("Les choix de produit doivent être un tableau.");
+        }
+
+        // Création de l'option
+        let newOption = new Options({
+            name,
+            choiceType,
+            choices: choiceType === 'CustomChoice' ? customChoices : productChoices
         });
+
+        await newOption.save({ session });
+
+        // Mise à jour des produits si productList est fourni
+        if (Array.isArray(productList) && productList.length > 0) {
+            await Product.updateMany(
+                { _id: { $in: productList } },
+                { $push: { options: newOption._id } },
+                { session }
+            );
+        }
+
+        // Confirmation de la transaction
+        await session.commitTransaction();
+        res.status(201).json({ message: 'Option créée avec succès', option: newOption });
+    } catch (error) {
+        // En cas d'erreur, annulation de la transaction
+        await session.abortTransaction();
+        res.status(500).json({ message: 'Erreur lors de la création de l\'option', error: error.message });
+    } finally {
+        // Fermeture de la session
+        session.endSession();
+    }
 };
+
 
 exports.deleteOption = (req, res) => {
     const optionId = req.params.id;
 
-    Option.findByIdAndRemove(optionId)
+    Options.findByIdAndRemove(optionId)
         .then(option => {
             if (!option) {
                 return res.status(404).json({ message: "Option non trouvée" });
@@ -64,7 +130,7 @@ exports.deleteOption = (req, res) => {
 
 exports.addOptionToProduct = (req, res) => {
     // ID du produit et de l'option provenant de la requête (par exemple, via le corps de la requête ou les paramètres)
-    const { productId, optionId } = req.body; 
+    const { productId, optionId } = req.body;
 
     // Trouver le produit par son ID
     Product.findById(productId)
@@ -92,107 +158,140 @@ exports.addOptionToProduct = (req, res) => {
         });
 };
 
+exports.removeOptionFromProduct = (req, res) => {
+    const { productId, optionId } = req.params;
 
+    // Vérifier si les identifiants du produit et de l'option sont fournis
+    if (!productId || !optionId) {
+        return res.status(400).json({ message: "Identifiants du produit et de l'option requis." });
+    }
 
-  
-  exports.getAllOptions = (req, res) => {
-    Option.find()
-      .then(options => res.status(200).json(options))
-      .catch(error => res.status(500).json({ error }));
-  };
-
-  exports.getOptionById = (req, res) => {
-    Option.findById(req.params.id)
-      .then(option => {
-        if (!option) {
-          return res.status(404).json({ message: 'Option not found.' });
+    // Mettre à jour le produit en retirant l'option
+    Product.findByIdAndUpdate(
+        productId,
+        { $pull: { options: optionId } }, // $pull pour retirer l'option de la liste
+        { new: true } // Renvoie le document mis à jour
+    )
+    .then(updatedProduct => {
+        if (!updatedProduct) {
+            return res.status(404).json({ message: "Produit non trouvé ou identifiant incorrect." });
         }
-        res.status(200).json(option);
-      })
-      .catch(error => res.status(500).json({ error }));
-  };
+        res.status(200).json({ message: "Option retirée du produit avec succès.", product: updatedProduct });
+    })
+    .catch(error => {
+        res.status(500).json({ message: "Erreur lors de la suppression de l'option du produit.", error: error.message });
+    });
+};
 
-  
-  exports.updateOption = (req, res) => {
-    Option.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
-      .then(updatedOption => {
-        if (!updatedOption) {
-          return res.status(404).json({ message: 'Option not found.' });
-        }
-        res.status(200).json(updatedOption);
-      })
-      .catch(error => res.status(400).json({ error }));
-  };
 
-  
-  exports.deleteOption = (req, res) => {
-    Option.findByIdAndRemove(req.params.id)
-      .then(deletedOption => {
-        if (!deletedOption) {
-          return res.status(404).json({ message: 'Option not found.' });
-        }
-        res.status(200).json({ message: 'Option deleted successfully.' });
-      })
-      .catch(error => res.status(500).json({ error }));
-  };
 
-  
-  exports.addChoiceToOption = (req, res) => {
+
+exports.getAllOptions = (req, res) => {
+    Options.find()
+        .populate({
+            path: 'choices',
+            match: { choiceType: 'Product' }, // Filtrer pour ne peupler que les choix de type 'Product'
+            populate: {
+                path: 'choiceItem', // Assurez-vous que 'choiceItem' est le nom correct du champ dans 'ChoiceSchema'
+                model: 'Product' // Remplacez 'Product' par le nom exact du modèle de produit
+            }
+        })
+        .then(options => res.status(200).json(options))
+        .catch(error => res.status(500).json({ error }));
+};
+
+exports.getOptionById = (req, res) => {
+    Options.findById(req.params.id)
+        .then(option => {
+            if (!option) {
+                return res.status(404).json({ message: 'Option not found.' });
+            }
+            res.status(200).json(option);
+        })
+        .catch(error => res.status(500).json({ error }));
+};
+
+
+exports.updateOption = (req, res) => {
+    Options.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
+        .then(updatedOption => {
+            if (!updatedOption) {
+                return res.status(404).json({ message: 'Option not found.' });
+            }
+            res.status(200).json(updatedOption);
+        })
+        .catch(error => res.status(400).json({ error }));
+};
+
+
+exports.deleteOption = (req, res) => {
+    Options.findByIdAndRemove(req.params.id)
+        .then(deletedOption => {
+            if (!deletedOption) {
+                return res.status(404).json({ message: 'Option not found.' });
+            }
+            res.status(200).json({ message: 'Option deleted successfully.' });
+        })
+        .catch(error => res.status(500).json({ error }));
+};
+
+
+exports.addChoiceToOption = (req, res) => {
     const choice = {
-      choiceType: req.body.choiceType,
-      choiceItem: req.body.choiceItem,
-      additionalCost: req.body.additionalCost
+        choiceType: req.body.choiceType,
+        choiceItem: req.body.choiceItem,
+        additionalCost: req.body.additionalCost
     };
-  
-    Option.findById(req.params.optionId)
-      .then(option => {
-        if (!option) {
-          return res.status(404).json({ message: 'Option not found.' });
-        }
-        option.choices.push(choice);
-        return option.save();
-      })
-      .then(updatedOption => res.status(201).json(updatedOption))
-      .catch(error => res.status(400).json({ error }));
-  };
 
-  exports.updateChoice = (req, res) => {
-    Option.findById(req.params.optionId)
-      .then(option => {
-        if (!option) {
-          return res.status(404).json({ message: 'Option not found.' });
-        }
-        const choice = option.choices.id(req.params.choiceId);
-        if (!choice) {
-          return res.status(404).json({ message: 'Choice not found.' });
-        }
-        choice.choiceType = req.body.choiceType || choice.choiceType;
-        choice.choiceItem = req.body.choiceItem || choice.choiceItem;
-        choice.additionalCost = req.body.additionalCost || choice.additionalCost;
-        return option.save();
-      })
-      .then(updatedOption => res.status(200).json(updatedOption))
-      .catch(error => res.status(400).json({ error }));
-  };
+    Options.findById(req.params.optionId)
+        .then(option => {
+            if (!option) {
+                return res.status(404).json({ message: 'Option not found.' });
+            }
+            option.choices.push(choice);
+            return option.save();
+        })
+        .then(updatedOption => res.status(201).json(updatedOption))
+        .catch(error => res.status(400).json({ error }));
+};
 
-  
-  exports.deleteChoice = (req, res) => {
-    Option.findById(req.params.optionId)
-      .then(option => {
-        if (!option) {
-          return res.status(404).json({ message: 'Option not found.' });
-        }
-        const choice = option.choice.id(req.params.choiceId);
-        if (!choice) {
-          return res.status(404).json({ message: 'Choice not found.' });
-        }
-        choice.remove();
-        return option.save();
-      })
-      .then(updatedOption => res.status(200).json({ message: 'Choice deleted successfully.' }))
-      .catch(error => res.status(500).json({ error }));
-  };
-  
+exports.updateChoice = (req, res) => {
+    Options.findById(req.params.optionId)
+        .then(option => {
+            if (!option) {
+                return res.status(404).json({ message: 'Option not found.' });
+            }
+            const choice = option.choices.id(req.params.choiceId);
+            if (!choice) {
+                return res.status(404).json({ message: 'Choice not found.' });
+            }
+            choice.choiceType = req.body.choiceType || choice.choiceType;
+            choice.choiceItem = req.body.choiceItem || choice.choiceItem;
+            choice.additionalCost = req.body.additionalCost || choice.additionalCost;
+            return option.save();
+        })
+        .then(updatedOption => res.status(200).json(updatedOption))
+        .catch(error => res.status(400).json({ error }));
+};
+
+
+exports.deleteChoice = (req, res) => {
+    Options.findById(req.params.optionId)
+        .then(option => {
+            if (!option) {
+                return res.status(404).json({ message: 'Option not found.' });
+            }
+            const choice = option.choices.id(req.params.choiceId);
+            if (!choice) {
+                return res.status(404).json({ message: 'Choice not found.' });
+            }
+            choice.remove();
+            return option.save();
+        })
+        .then(updatedOption => res.status(200).json({ message: 'Choice deleted successfully.' }))
+        .catch(error => res.status(500).json({ error }));
+};
+
 
 
 // Contrôleur pour modifier l'ordre des options
@@ -265,9 +364,9 @@ exports.addCategoryToEnsemble = (req, res) => {
         { $addToSet: { categoryIds: categoryId } }, // $addToSet garantit que categoryId est unique
         { new: true }
     )
-    .populate('categoryIds')
-    .then(ensemble => res.status(200).json(ensemble))
-    .catch(error => res.status(400).json({ error }));
+        .populate('categoryIds')
+        .then(ensemble => res.status(200).json(ensemble))
+        .catch(error => res.status(400).json({ error }));
 };
 
 // CATEGORY CONTROLLER
@@ -277,6 +376,7 @@ exports.createCategory = (req, res) => {
     const category = new Category({
         titleCategory: req.body.titleCategory,
         descriptionCategory: req.body.deleteCategory,
+        available: req.body.available,
         products: req.body.products,
         imgCategory: `${req.protocol}://${req.get('host')}/images/${req.files['imgCategory'][0].filename}`
     });
@@ -290,101 +390,80 @@ exports.getAllCategories = (req, res) => {
         .sort('orderCategory') // Trie les catégories par orderCategory
         .populate({
             path: 'products', // Peuple d'abord les produits
-            populate: { 
+            populate: {
                 path: 'options', // Ensuite, peuple les options de chaque produit
-                model: 'Option' // Assurez-vous que c'est le nom correct de votre modèle d'option
+                model: 'Options', 
+                populate: {
+                    path: 'choices.choiceItem', // Peuple les choix de type Product
+                    model: 'Product', 
+                    // match: { choiceType: 'Product' } // Condition pour peupler seulement si le type est 'Product'
+                }
             }
         })
         .then(categories => {
             res.json(categories);
         })
         .catch(error => {
+            console.log(error)
             res.status(500).send({ message: 'Erreur lors de la récupération des catégories' });
         });
-},
-
-
-
-exports.getCategoryById = (req, res) => {
-    Category.findById(req.params.id).populate('products')
-        .then(category => {
-            if (!category) {
-                return res.status(404).send({ message: 'Catégorie non trouvée' });
-            }
-            res.json(category);
-        })
-        .catch(error => {
-            res.status(500).send({ message: 'Erreur lors de la récupération de la catégorie' });
-        });
-},
-
-// exports.addProductToCategory = (req, res) => {
-//     const productObject = {...req.body}
-//     if (isNaN(productObject.prixMenu)){
-//         delete productObject.prixMenu
-//     }
-//     const product = new Product({
-//         ...productObject,
-//         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.files['image'][0].filename}`
-//     });
-    
-//     product.save()
-//         .then(savedProduct => {
-//             console.log(savedProduct)
-//             console.log(req.params)
-//             return Category.updateOne(
-//                 { _id: req.params.id }, 
-//                 { $push: { products: savedProduct._id } }
-//             )
-//             .then(() => {
-//                 res.status(200).json({ message: 'Produit ajouté avec succès à la catégorie!', product: savedProduct });
-//             });
-//         })
-//         .catch(error => {
-//             // Gérez les erreurs
-//             res.status(500).json({ error: 'Il y a eu une erreur lors de l\'ajout du produit.' });
-//         });
-// };
-
-
-
-
-exports.addProductToCategory = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        const productObject = {...req.body};
-        
-        if (isNaN(productObject.prixMenu)){
-            delete productObject.prixMenu;
-        }
-
-        const product = new Product({
-            ...productObject,
-            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.files['image'][0].filename}`
-        });
-        
-        const savedProduct = await product.save({ session });
-
-        await Category.updateOne(
-            { _id: req.params.id }, 
-            { $push: { products: savedProduct._id } },
-            { session }
-        );
-
-        await session.commitTransaction();
-        session.endSession();
-
-        res.status(200).json({ message: 'Produit ajouté avec succès à la catégorie!', product: savedProduct });
-    } catch (error) {
-        console.log(error)
-        await session.abortTransaction();
-        session.endSession();
-
-        res.status(500).json({ error: 'Il y a eu une erreur lors de l\'ajout du produit.' });
-    }
 };
+
+
+
+    exports.getCategoryById = (req, res) => {
+        Category.findById(req.params.id).populate('products')
+            .then(category => {
+                if (!category) {
+                    return res.status(404).send({ message: 'Catégorie non trouvée' });
+                }
+                res.json(category);
+            })
+            .catch(error => {
+                res.status(500).send({ message: 'Erreur lors de la récupération de la catégorie' });
+            });
+    },
+
+
+
+
+
+    exports.addProductToCategory = async (req, res) => {
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            const productObject = { ...req.body };
+
+            if (isNaN(productObject.prixMenu)) {
+                delete productObject.prixMenu;
+            }
+
+            const product = new Product({
+                ...productObject,
+                imageUrl: `${req.protocol}://${req.get('host')}/images/${req.files['image'][0].filename}`
+            });
+
+            const savedProduct = await product.save({ session });
+
+            await Category.updateOne(
+                { _id: req.params.id },
+                { $push: { products: savedProduct._id } },
+                { session }
+            );
+
+            await session.commitTransaction();
+            session.endSession();
+
+            res.status(200).json({ message: 'Produit ajouté avec succès à la catégorie!', product: savedProduct });
+        } catch (error) {
+            console.log(error)
+            await session.abortTransaction();
+            session.endSession();
+
+            res.status(500).json({ error: 'Il y a eu une erreur lors de l\'ajout du produit.' });
+        }
+    };
 
 exports.updateCategoryOrder = (req, res) => {
     const orderedCategoryIds = req.body
@@ -413,10 +492,10 @@ exports.updateCategoryOrder = (req, res) => {
 exports.updateProductOrder = (req, res) => {
     // const newTitle = req.body.titleCategory;
     const productIds = Object.values(req.body.productsOrder);
-    
-    Category.updateOne({ _id: req.params.id }, { products: productIds})
-            .then(() => res.status(200).json({ message: 'Catégorie modifiée avec succès !' }))
-            .catch(error => res.status(400).json({ error }));
+
+    Category.updateOne({ _id: req.params.id }, { products: productIds })
+        .then(() => res.status(200).json({ message: 'Catégorie modifiée avec succès !' }))
+        .catch(error => res.status(400).json({ error }));
 };
 
 
@@ -424,14 +503,14 @@ exports.editCategory = (req, res) => {
     const categoryObject = Object.keys(req.files).length > 0 ? {
         ...req.body,
         imgCategory: `${req.protocol}://${req.get('host')}/images/${req.files['imgCategory'][0].filename}`
-    }:{ 
+    } : {
         ...req.body,
     }
-    
-    Category.findOne({_id: req.params.id})
+
+    Category.findOne({ _id: req.params.id })
         .then((category) => {
 
-                Category.updateOne({ _id: req.params.id}, { ...categoryObject, _id: req.params.id})
+            Category.updateOne({ _id: req.params.id }, { ...categoryObject, _id: req.params.id })
                 .then((modif) => {
                     if (Object.keys(req.files).length > 0) {
                         const filename = category.imgCategory.split('/images/')[1]
@@ -444,11 +523,11 @@ exports.editCategory = (req, res) => {
                     res.status(200).json({ modif });
                 })
                 .catch(error => res.status(401).json({ error }));
-            
+
         })
         .catch((error) => {
             res.status(400).json({ error });
-        }); 
+        });
 }
 
 
@@ -473,17 +552,17 @@ exports.moveProductsToCategory = (req, res) => {
         { $pull: { products: { $in: productIds } } },
         { new: true }
     )
-    .exec()
-    .then(() => {
-        // Ajouter les produits à la catégorie de destination
-        return Category.findByIdAndUpdate(
-            targetCategoryId,
-            { $addToSet: { products: { $each: productIds } } },
-            { new: true }
-        ).exec();
-    })
-    .then(() => res.status(200).json({ message: 'Produits déplacés avec succès !' }))
-    .catch(error => res.status(400).json({ error }));
+        .exec()
+        .then(() => {
+            // Ajouter les produits à la catégorie de destination
+            return Category.findByIdAndUpdate(
+                targetCategoryId,
+                { $addToSet: { products: { $each: productIds } } },
+                { new: true }
+            ).exec();
+        })
+        .then(() => res.status(200).json({ message: 'Produits déplacés avec succès !' }))
+        .catch(error => res.status(400).json({ error }));
 };
 
 exports.copyProductsToCategory = (req, res) => {
@@ -496,26 +575,26 @@ exports.copyProductsToCategory = (req, res) => {
 
     // Trouver la catégorie d'origine pour vérifier que les produits existent
     Category.findById(sourceCategoryId)
-    .then(sourceCategory => {
-        if (!sourceCategory) {
-            return res.status(404).json({ message: 'Catégorie d\'origine non trouvée.' });
-        }
+        .then(sourceCategory => {
+            if (!sourceCategory) {
+                return res.status(404).json({ message: 'Catégorie d\'origine non trouvée.' });
+            }
 
-        // Vérifier si tous les produits sont dans la catégorie d'origine
-        const invalidProducts = productIds.filter(productId => !sourceCategory.products.includes(productId));
-        if (invalidProducts.length) {
-            return res.status(400).json({ message: 'Certains produits ne sont pas dans la catégorie d\'origine.', invalidProducts });
-        }
+            // Vérifier si tous les produits sont dans la catégorie d'origine
+            const invalidProducts = productIds.filter(productId => !sourceCategory.products.includes(productId));
+            if (invalidProducts.length) {
+                return res.status(400).json({ message: 'Certains produits ne sont pas dans la catégorie d\'origine.', invalidProducts });
+            }
 
-        // Ajouter les produits à la catégorie de destination
-        return Category.findByIdAndUpdate(
-            targetCategoryId,
-            { $addToSet: { products: { $each: productIds } } },
-            { new: true }
-        ).exec();
-    })
-    .then(() => res.status(200).json({ message: 'Produits copiés avec succès !' }))
-    .catch(error => res.status(400).json({ error }));
+            // Ajouter les produits à la catégorie de destination
+            return Category.findByIdAndUpdate(
+                targetCategoryId,
+                { $addToSet: { products: { $each: productIds } } },
+                { new: true }
+            ).exec();
+        })
+        .then(() => res.status(200).json({ message: 'Produits copiés avec succès !' }))
+        .catch(error => res.status(400).json({ error }));
 };
 
 exports.removeProductFromCategory = (req, res) => {
@@ -532,21 +611,22 @@ exports.removeProductFromCategory = (req, res) => {
         { $pull: { products: productId } },
         { new: true }
     )
-    .then(updatedCategory => {
-        if (!updatedCategory) {
-            return res.status(404).json({ message: 'Catégorie non trouvée.' });
-        }
-        res.status(200).json({ message: 'Produit retiré de la catégorie avec succès!', updatedCategory });
-    })
-    .catch(error => res.status(400).json({ error }));
+        .then(updatedCategory => {
+            if (!updatedCategory) {
+                return res.status(404).json({ message: 'Catégorie non trouvée.' });
+            }
+            res.status(200).json({ message: 'Produit retiré de la catégorie avec succès!', updatedCategory });
+        })
+        .catch(error => res.status(400).json({ error }));
 };
 
 
 
-exports.createProduct = (req,res) => {
+exports.createProduct = (req, res) => {
 
-    const productObject = {...req.body}
-    if (isNaN(productObject.prixMenu)){
+    const productObject = { ...req.body }
+    console.log(req.body)
+    if (isNaN(productObject.prixMenu)) {
         delete productObject.prixMenu
     }
     const product = new Product({
@@ -554,24 +634,24 @@ exports.createProduct = (req,res) => {
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.files['image'][0].filename}`
     });
     product.save()
-        .then((product) => res.status(201).json({ message: 'Objet enregistré !', product}))
+        .then((product) => res.status(201).json({ message: 'Objet enregistré !', product }))
         .catch(error => res.status(400).json({ error }));
 };
 
 exports.getOneProduct = (req, res) => {
     const id = req.params.id;
-    Product.findOne({_id: id})
-    .populate('options')
-    .then((product)  => { return res.status(200).json({product})})
-    .catch((error) => { return res.status(404).json({error})});
+    Product.findOne({ _id: id })
+        .populate('options')
+        .then((product) => { return res.status(200).json({ product }) })
+        .catch((error) => { return res.status(404).json({ error }) });
 }
 
-exports.getAllProduct = (req, res) =>{
+exports.getAllProduct = (req, res) => {
     Product.find()
-    .populate('options')
-    .then((Allproduct)  => { return res.status(200).json({Allproduct})})
-    .catch((error) => { return res.status(400).json({error})});
-} 
+        .populate('options')
+        .then((Allproduct) => { return res.status(200).json({ Allproduct }) })
+        .catch((error) => { return res.status(400).json({ error }) });
+}
 
 // exports.editProduct = (req, res) =>{
 
@@ -579,7 +659,7 @@ exports.getAllProduct = (req, res) =>{
 //         ...JSON.parse(req.body.product),
 //         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
 //     } : { ...req.body };
-  
+
 //     delete productObject._userId;
 //     Product.findOne({_id: req.params.id})
 //         .then((product) => {
@@ -596,22 +676,22 @@ exports.getAllProduct = (req, res) =>{
 //         });
 // }
 
-exports.editProduct = (req, res) =>{
+exports.editProduct = (req, res) => {
 
     const productObject = Object.keys(req.files).length > 0 ? {
         ...req.body,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.files['image'][0].filename}`
-    }:{ 
+    } : {
         ...req.body,
     }
-    
-    Product.findOne({_id: req.params.id})
+
+    Product.findOne({ _id: req.params.id })
         .then((product) => {
             // if (product.userId != req.auth.userId) {
             //     res.status(401).json({ message : 'Not authorized'});
             // } else {
-                
-                Product.updateOne({ _id: req.params.id}, { ...productObject, _id: req.params.id})
+
+            Product.updateOne({ _id: req.params.id }, { ...productObject, _id: req.params.id })
                 .then((modif) => {
                     if (Object.keys(req.files).length > 0) {
                         const filename = product.imageUrl.split('/images/')[1]
@@ -624,11 +704,11 @@ exports.editProduct = (req, res) =>{
                     res.status(200).json({ modif });
                 })
                 .catch(error => res.status(401).json({ error }));
-            
+
         })
         .catch((error) => {
             res.status(400).json({ error });
-        }); 
+        });
 }
 
 
@@ -641,7 +721,7 @@ exports.editProduct = (req, res) =>{
 //                         .then(() => { res.status(200).json({message: 'Objet supprimé !'})})
 //                         .catch(error => res.status(401).json({ error }));
 //                 });
-            
+
 //         })
 //         .catch( error => {
 //             res.status(500).json({ error });
@@ -655,7 +735,7 @@ exports.deleteProduct = (req, res, next) => {
             req.imageUrlToDelete = product.imageUrl; // définir l'URL de l'image à supprimer
             console.log("Trouvé le produit avec l'URL d'image :", product.imageUrl);
 
-            product.deleteOne({_id: req.params.id})
+            product.deleteOne({ _id: req.params.id })
                 .then(() => res.status(200).json({ message: 'Objet supprimé !' }))
                 .catch(error => res.status(400).json({ error }));
         })
