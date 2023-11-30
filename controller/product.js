@@ -58,7 +58,7 @@ exports.createOption = async (req, res) => {
     session.startTransaction();
 
     try {
-        const { name, choiceType, customChoices, productChoices, productList } = req.body;
+        const { name, choiceType, qtMinimal, qtMaximal, multiply, customChoices, productChoices, productList } = req.body;
 
         // Validation des données
         if (!name || !choiceType) {
@@ -76,6 +76,10 @@ exports.createOption = async (req, res) => {
         // Création de l'option
         let newOption = new Options({
             name,
+            qtMinimal,
+            qtMaximal,
+            multiply,
+            extraCost,
             choiceType,
             choices: choiceType === 'CustomChoice' ? customChoices : productChoices
         });
@@ -677,6 +681,7 @@ exports.getAllProduct = (req, res) => {
 // }
 
 exports.editProduct = (req, res) => {
+    console.log(req.body)
 
     const productObject = Object.keys(req.files).length > 0 ? {
         ...req.body,
