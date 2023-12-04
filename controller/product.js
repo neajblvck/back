@@ -58,7 +58,7 @@ exports.createOption = async (req, res) => {
     session.startTransaction();
 
     try {
-        const { name, choiceType, qtMinimal, qtMaximal, multiply, customChoices, productChoices, productList } = req.body;
+        const { name, choiceType, qtMinimal, qtMaximal, multiply, extraCost, customChoices, productChoices, productList } = req.body;
 
         // Validation des données
         if (!name || !choiceType) {

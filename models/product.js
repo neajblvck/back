@@ -22,7 +22,7 @@ const OptionSchema = new mongoose.Schema({
   name: { type: String, required: true },
   qtMinimal: {type:Number, required: false},
   qtMaximal: {type:Number, required: false},
-  multiply: {type: Number, required: false},
+  multiply: {type: Boolean, required: false},
   extraCost: {type: Number, required: false},
   choices: [ChoiceSchema],
   choiceType: {
