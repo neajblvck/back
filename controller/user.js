@@ -1,8 +1,10 @@
 // CONTROLLER USER
 
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/user');
+const Session = require('../models/session');
 
 exports.signup = (req, res) => {
     bcrypt.hash(req.body.password, 10)
@@ -22,8 +24,10 @@ exports.signup = (req, res) => {
         .catch(error => res.status(500).json({ error }));
 };
 
-exports.login = (req, res) => {
 
+
+
+exports.login = (req, res) => {
     const email = decodeURIComponent(req.body.email);
     const password = decodeURIComponent(req.body.password);
 
@@ -32,24 +36,35 @@ exports.login = (req, res) => {
             if (!user) {
                 return res.status(401).json({ message: 'Paire login/mot de passe incorrecte' });
             }
+
             bcrypt.compare(password, user.password)
                 .then(valid => {
                     if (!valid) {
                         return res.status(401).json({ message: 'Paire login/mot de passe incorrecte' });
                     }
-                    res.status(200).json({
-                        token: jwt.sign({
-                            userId: user._id,
-                        },
-                            process.env.JWT_SECRET,
-                            { expiresIn: process.env.JWT_EXPIRES_IN }
-                        )
-                    });
+
+                    const sessionId = new mongoose.Types.ObjectId();
+
+                    const token = jwt.sign(
+                        { sessionId, userId: user._id,}, // <-- tenantId: user.tenantId 
+                        process.env.JWT_SECRET,
+                        { expiresIn: process.env.JWT_EXPIRES_IN }
+                    );
+
+                    Session.deleteMany({ userId: user._id })
+                        .then(() => {
+                            const newSession = new Session({ userId: user._id, sessionId });
+                            newSession.save()
+                                .then(() => res.status(200).json({ token }))
+                                .catch(error => res.status(500).json({ error: error.message }));
+                        })
+                        .catch(error => res.status(500).json({ error: error.message }));
                 })
-                .catch(error => res.status(500).json({ error }));
+                .catch(error => res.status(500).json({ error: error.message }));
         })
-        .catch(error => res.status(500).json({ error }));
+        .catch(error => res.status(500).json({ error: error.message }));
 };
+
 
 
 

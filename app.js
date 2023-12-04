@@ -15,12 +15,12 @@ const rateLimit = require('express-rate-limit');
 // // Middleware rate limit pour limiter les requêtes
 const limiter = rateLimit({
   windowMs: 30 * 60 * 1000, // 15 minutes
-  max: 500, // Limite de requêtes par IP pendant la période spécifiée
+  max:1000, // Limite de requêtes par IP pendant la période spécifiée
   message: 'Trop de requêtes, veuillez réessayer plus tard.',
 });
 
 // Middleware pour limiter les requêtes
-app.use(limiter);
+// app.use(limiter);
 
 // Utilisation de Helmet pour la sécurité
 app.use(
@@ -36,10 +36,10 @@ mongoose.set('strictQuery', false);  // Pour désactiver strictQuery
 
 
 // Gestion de CORS
-const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:8080';
+const corsOrigin = process.env.CORS_ORIGIN;
 
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization'
@@ -62,15 +62,15 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
 // Routes
+const userRoute = require('./router/user');
 const productRoute = require('./router/product');
 const printRoute = require('./router/print');
-const userRoute = require('./router/user');
 const contentRoute = require('./router/content');
 const serviceRoute = require('./router/service');
 const chatRoute = require('./router/chat');
 
-app.use('/api/content', contentRoute);
 app.use('/api/auth', userRoute);
+app.use('/api/content', contentRoute);
 app.use('/api/users', userRoute);
 app.use('/api/products', productRoute);
 app.use('/api/print', printRoute);

@@ -43,25 +43,30 @@ async function openDevice(device) {
 function printContent(printer, orderData) {
   // Impression du contenu de la commande
   printer
-    .align('ct')
-    .style('bu')
-    .size(1, 1)
-    .text('----------------')
-    .size(2, 2)
-    .text(`Commande N° ${orderData.orderNumber}`)
-    .size(1, 1)
-    .text('----------------')
-    .size(1, 1)
-    .text(`Type: ${orderData.orderType}`);
+  .align('ct')
+  .style('b') // Style en gras et souligné pour le titre
+  .size(1, 1)
+  .size(2, 4)
+  .text('______')
+  .text(`${orderData.orderNumber}`)
+  .text('______')
+  .size(1, 1)
+  .style('b') // Appliquer le style gras
+  .text(`${orderData.orderType}`)
+  .control('lf')
+  .style('normal'); // Retour au style normal pour le reste du texte
 
   orderData.products.forEach(product => {
     printer
+      .align('lt')
+      .style('b')
       .size(1, 1)
-      .bold(true)
-      .text(`${product.name.toUpperCase()} x${product.quantity}`)
-      .bold(false);
+      .style('normal')
+      .control('lf')
+      .text(`x${product.quantity} ${product.name.toUpperCase()}`)
+      .size(1, 1)
     product.customizations.forEach(custom => {
-      printer.text(` - ${custom}`);
+      printer.text(`   - ${custom}`);
     });
   });
 }
