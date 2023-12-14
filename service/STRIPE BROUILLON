@@ -1,0 +1,218 @@
+// Set your secret key. Remember to switch to your live secret key in production.
+// See your keys here: https://dashboard.stripe.com/apikeys
+
+
+const stripe = require('stripe')(process.env.STRIPE_API_KEY);
+
+const account = await stripe.accounts.create({
+  type: 'standard',
+});
+
+
+app.post('/creer-account-link', async (req, res) => {
+  try {
+      const { accountId } = req.body;
+
+      const accountLink = await stripe.accountLinks.create({
+          account: accountId,
+          refresh_url: `${process.env.CORS_ORIGIN}/reauth`, // reprendre le processus pour une raison quelconque
+          return_url: `${process.env.CORS_ORIGIN}/return`, // confirmer que le compte a été configuré.
+          
+          type: 'account_onboarding', // ou 'account_update' selon le besoin
+      });
+
+      res.status(200).json({ url: accountLink.url });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// Votre refresh_url doit déclencher une méthode sur votre serveur pour rappeler l’API Account Links 
+// avec les mêmes paramètres et rediriger l’utilisateur vers le flux Connect Onboarding 
+
+// Une fois que l’utilisateur est redirigé vers votre return_url, 
+// vérifiez l’état du paramètre details_submitted sur son compte de l’une des manières suivantes :
+// Écoutez les webhooks account.updated
+// Appelez l’API Accounts et examinez l’objet renvoyé
+
+
+// intention de paiement avec paiement défini depuis dashboard, voir API si besoin de config manuelle
+const paymentIntent = await stripe.paymentIntents.create(
+  {
+    amount: 1099,
+    currency: 'eur',
+    automatic_payment_methods: {
+      enabled: true,
+    },
+    application_fee_amount: 123,
+  },
+  {
+    stripeAccount: '{{CONNECTED_ACCOUNT_ID}}',
+  }
+);
+
+
+
+// Une session Checkout détermine ce que votre client voit sur la page de paiement hébergée par Stripe, 
+
+const session = await stripe.checkout.sessions.create(
+  {
+    mode: 'payment',
+    // articles achetés par votre client, qui apparaîtront dans l’interface utilisateur hébergée.
+    line_items: [
+      {
+        price: '{{PRICE_ID}}',
+        quantity: 1,
+      },
+    ],
+    payment_intent_data: {
+      application_fee_amount: 123, // prélever sur la transaction par MOKA AGENCY
+    },
+    ui_mode: 'embedded',
+    return_url: 'https://example.com/checkout/return?session_id={CHECKOUT_SESSION_ID}',
+  },
+  {
+    stripeAccount: '{{CONNECTED_ACCOUNT_ID}}',
+    // Compte de l'abonnée
+  }
+);
+
+
+
+
+
+
+
+// La route /secret est utilisé par le client pour get la clef secrète iccu du paymentIntent
+// donc on doit créer ou récupérer un PaymentIntent de Stripe et renvoyer sa clé secrète.
+
+
+app.get('/secret', async (req, res) => {
+  // Créer ou récupérer le PaymentIntent
+  const paymentIntent = // Code pour créer ou récupérer le PaymentIntent
+
+  // Renvoyer la clé secrète du client
+  res.json({client_secret: paymentIntent.client_secret});
+});
+
+
+// lorsque le paiement est validé, on peut utiliser un webhook afin d'écouter les evenements provenant de stripe
+// et du coups lancer l'impression du ticket par exemple
+
+
+// EVENEMENT A ECOUTER
+
+// checkout.session.completed = Le client a autorisé le paiement en soumettant son formulaire Checkout.
+// checkout.session.async_payment_succeeded = paiement validé
+// checkout.session.async_payment_failed = paiement refusé
+
+
+
+// CHECKOUT A AJOUTER DANS LE FRONT
+// personalisable dans "parametre de marque"
+
+
+{/* <head>
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <div id="checkout">
+    <!-- Checkout will insert the payment form here -->
+  </div>
+</body> */}
+
+
+// TPE
+
+// creer un location
+const location = await stripe.terminal.locations.create({
+  display_name: 'HQ',
+  address: {
+    line1: '19 Rue de Vienne',
+    city: 'Paris',
+    country: 'FR',
+    postal_code: '75008',
+  }
+}, {
+  stripeAccount: '{{CONNECTED_ACCOUNT_ID}}'
+})
+
+// get location
+// const location = await stripe.terminal.locations.retrieve('tml_FBakXQG8bQk4Mm');
+
+// connecter votre application à un lecteur intelligent
+const reader = await stripe.terminal.readers.create({
+  registration_code: "{{READER_REGISTRATION_CODE}}",
+  label: "Alice's Reader",
+  location: '{{LOCATION_ID}}',
+}, {
+  stripeAccount: '{{CONNECTED_ACCOUNT_ID}}'
+});
+
+
+// creer un token de connexion
+//Sans location défini, vous pouvez utiliser le ConnectionToken avec tous les lecteurs.
+let connectionToken = stripe.terminal.connectionTokens.create({
+  location: '{{LOCATION_ID}}'
+}, {
+  stripeAccount: '{{CONNECTED_ACCOUNT_ID}}'
+});
+
+
+const intent = await stripe.paymentIntents.create({
+  amount: 1000,
+  currency: 'eur',
+  payment_method_types: ['card_present'],
+  capture_method: 'manual',
+}, {
+  stripeAccount: '{{CONNECTED_ACCOUNT_ID}}'
+});
+
+
+// proposer par chatGPT
+app.post('/paiement', async (req, res) => {
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: montant,  // Montant en centimes
+      currency: 'eur',  // Devise
+      // Autres paramètres si nécessaire
+    });
+    res.json({clientSecret: paymentIntent.client_secret});
+  } catch (error) {
+    res.status(500).json({erreur: error.message});
+  }
+});
+
+
+
+// recu 
+
+// account_type	Type de compte	Obligatoire (facultatif aux États-Unis)
+// application_preferred_name	Nom de l’application	Obligatoire
+// dedicated_file_name	AID	Obligatoire
+
+
+// affichage sur le lecteur
+const reader = await stripe.terminal.readers.setReaderDisplay(
+  'tmr_xxx',
+  {
+    type: 'cart',
+    cart: {
+      line_items: [
+        {
+          description: 'Caramel latte',
+          amount: 659,
+          quantity: 1,
+        },
+        {
+          description: 'Dozen donuts',
+          amount: 1239,
+          quantity: 1,
+        },
+      ],
+      currency: 'usd',
+      tax: 100,
+      total: 1998,
+    },
+  }
+);

@@ -629,7 +629,7 @@ exports.removeProductFromCategory = (req, res) => {
 exports.createProduct = (req, res) => {
 
     const productObject = { ...req.body }
-    console.log(req.body)
+
     if (isNaN(productObject.prixMenu)) {
         delete productObject.prixMenu
     }

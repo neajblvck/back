@@ -33,6 +33,8 @@ app.use(
 );
 
 mongoose.set('strictQuery', false);  // Pour désactiver strictQuery
+app.set('trust proxy', 1); // Activer 'trust proxy'
+
 
 
 // Gestion de CORS
@@ -68,6 +70,8 @@ const printRoute = require('./router/print');
 const contentRoute = require('./router/content');
 const serviceRoute = require('./router/service');
 const chatRoute = require('./router/chat');
+const stripeRoute = require('./router/stripe')
+
 
 app.use('/api/auth', userRoute);
 app.use('/api/content', contentRoute);
@@ -77,6 +81,8 @@ app.use('/api/print', printRoute);
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/service', serviceRoute);
 app.use('/chat', chatRoute);
+app.use('/stripe', stripeRoute);
+
 
 // Middleware Multer
 const multer = require('multer');

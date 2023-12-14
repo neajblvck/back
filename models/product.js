@@ -19,6 +19,11 @@ const ChoiceSchema = new mongoose.Schema({
 });
 
 const OptionSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    index: true
+  },
   name: { type: String, required: true },
   qtMinimal: {type:Number, required: false},
   qtMaximal: {type:Number, required: false},
@@ -36,6 +41,11 @@ const Options = mongoose.model('Options', OptionSchema);
 
 // Modèle de produit
 const productSchema = mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    index: true
+  },
   nameProduct: { type: String, required: true },
   descriptionProduct: { type: String, required: true },
   imageUrl: { type: String, required: true },
@@ -50,9 +60,15 @@ const productSchema = mongoose.Schema({
 })
 
 const Product = mongoose.model('Product', productSchema);
+// const products = await Product.find({ tenantId: req.tenantId });
 
 // Modèle de catégorie de produit
 const categorySchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    index: true
+  },
   titleCategory: { type: String, required: true },
   descriptionCategory: { type: String, required: false },
   imgCategory: { type: String, required: false },
@@ -78,6 +94,11 @@ const Category = mongoose.model('Category', categorySchema);
 
 
 const ensembleSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    index: true
+  },
   name: { type: String, required: true },
   categoryIds: [{
     type: mongoose.Schema.Types.ObjectId,

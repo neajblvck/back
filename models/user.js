@@ -8,8 +8,13 @@ const userSchema = mongoose.Schema({
   surname: { type: String, required: false, unique: false },
   phone: { type: String, required: false, unique: false },
   email: { type: String, required: true, unique: true },
-  role: { type: String, required: false, unique: false },
-  password: { type: String, required: true }
+  password: { type: String, required: true },
+  permissions: { type: String, required: false, unique: false },
+  subscriptionStatus: {
+    type: String,
+    enum: ['active', 'inactive', 'pending'], 
+    default: 'inactive'
+  }
 });
 
 userSchema.plugin(uniqueValidator);
