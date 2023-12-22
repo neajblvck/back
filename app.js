@@ -63,14 +63,19 @@ mongoose
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
+// DAO
+const UserDAO = require('./dao/CentralUserDAO');
+const CentralUserDAO = new UserDAO();
+
 // Routes
-const userRoute = require('./router/user');
+const userRoute = require('./router/user')(CentralUserDAO);
 const productRoute = require('./router/product');
 const printRoute = require('./router/print');
 const contentRoute = require('./router/content');
 const serviceRoute = require('./router/service');
 const chatRoute = require('./router/chat');
 const stripeRoute = require('./router/stripe')
+const accountRoute = require('./router/account')
 
 
 app.use('/api/auth', userRoute);
@@ -82,6 +87,7 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/service', serviceRoute);
 app.use('/chat', chatRoute);
 app.use('/stripe', stripeRoute);
+app.use('/account', accountRoute);
 
 
 // Middleware Multer

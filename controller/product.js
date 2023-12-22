@@ -137,7 +137,7 @@ exports.addOptionToProduct = (req, res) => {
     const { productId, optionId } = req.body;
 
     // Trouver le produit par son ID
-    Product.findById(productId)
+    Products.findById(productId)
         .then(product => {
             if (!product) {
                 return res.status(404).json({ message: "Produit non trouvé" });

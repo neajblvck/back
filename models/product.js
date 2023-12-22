@@ -60,7 +60,8 @@ const productSchema = mongoose.Schema({
 })
 
 const Product = mongoose.model('Product', productSchema);
-// const products = await Product.find({ tenantId: req.tenantId });
+
+
 
 // Modèle de catégorie de produit
 const categorySchema = new mongoose.Schema({

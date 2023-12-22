@@ -2,10 +2,49 @@ const stripe = require('stripe')('sk_test_51NYJ6hGzmWR6qGMpLclDToxuhDCRCUgxIOdOW
 
 const stripeService = {
 
+
+    // CREER UN CUSTOMER: Nouvel Utilisateur du Saas
+    // https://stripe.com/docs/api/customers/object
+    createCustomer: (accountDetails, tenantId) => {
+        return stripe.customers.create({
+            // name: accountDetails.name,
+            email: accountDetails.email,
+            payment_method: 'pm_card_visa',
+            invoice_settings: {
+              default_payment_method: 'pm_card_visa',
+            },
+            metadata: { tenant: tenantId },
+            address: {
+                line1: accountDetails.address.street,
+                line2: accountDetails.address.line2,
+                city: accountDetails.address.city,
+                postal_code: accountDetails.address.zip,
+                state: accountDetails.address.state
+            },
+            description: accountDetails.description,
+            phone: accountDetails.phone,
+
+        })
+        // , {
+        //     stripeAccount: accountId,
+        // });
+    },
+
+    subscribe: async ({ planId, stripeCustomerId }) => {
+
+            const subscription = await stripe.subscriptions.create({
+                customer: stripeCustomerId,
+                items: [{ plan: planId }],
+                // Autres options d'abonnement si nécessaire
+            });
+
+            return subscription;
+    },
+
     // Créer un compte Stripe Express
     createExpressAccount: (userDetails) => {
         return stripe.accounts.create({
-            type: 'standard',
+            type: 'express',
             country: userDetails.country,
             email: userDetails.email,
             // capabilities: {
@@ -14,13 +53,6 @@ const stripeService = {
             // },
         });
     },
-
-    // CREER UN CUSTOMER: Nouvel Utilisateur du Saas
-    // https://stripe.com/docs/api/customers/object
-//     const customer = await stripe.customers.create({
-//     name: 'Jenny Rosen',
-//     email: 'jennyrosen@example.com',
-//   });
 
     // Créer un lien d'onboarding pour le compte Express
     createOnboardingLink: (accountId, refreshUrl, returnUrl) => {
@@ -49,28 +81,30 @@ const stripeService = {
         });
     },
 
-    
-        // Enregistrer un lecteur Stripe Terminal pour un compte connecté
-        registerTerminalReader: (accountId, registrationCode, locationId) => {
-            return stripe.terminal.readers.create({
-                registration_code: 'simulated-wpe',
-                location: locationId,
-                metadata: {
-                    connected_account_id: accountId // lié le reader au compte connecté
-                  }
-            }, {
-                stripeAccount: accountId,
-            });
-        },
 
-        // création Token de connexion pour ouvrir une session
-        createConnectionToken: (accountId, locationId) => { 
-            return stripe.terminal.connectionTokens.create({
+    // Enregistrer un lecteur Stripe Terminal pour un compte connecté
+    registerTerminalReader: (accountId, registrationCode, locationId) => {
+        console.log(accountId, registrationCode, locationId)
+
+        return stripe.terminal.readers.create({
+            registration_code: registrationCode,
+            location: locationId,
+            metadata: {
+                connected_account_id: accountId // lié le reader au compte connecté
+            }
+        }, {
+            stripeAccount: accountId,
+        });
+    },
+
+    // création Token de connexion pour ouvrir une session
+    createConnectionToken: (accountId, locationId) => {
+        return stripe.terminal.connectionTokens.create({
             location: "tml_FXRwgAsPu2sEg1"
-          }, {
+        }, {
             stripeAccount: accountId
-          });
-        },
+        });
+    },
 
     // Créer un PaymentIntent pour Stripe Terminal
     createTerminalPaymentIntent: (accountId, amount, currency) => {
@@ -78,28 +112,47 @@ const stripeService = {
             amount: amount,
             currency: 'eur',
             payment_method_types: ['card_present'],
-            // on_behalf_of: accountId,
-            // capture_method: 'automatic',
-            // transfer_data: {
-            //     destination: accountId, 
-            //   },
-            // application_fee_amount: 100,
-          }, {
+            capture_method: 'automatic',
+            application_fee_amount: 123,
+        }, {
             stripeAccount: accountId
-          });
+        });
     },
 
-    
-    processPayment: (accountId, tmr) => {
+
+    processPayment: (accountId, tmr, pi) => {  
         return stripe.terminal.readers.processPaymentIntent(
-            'tmr_FXSHmgcmlJk0sK',
-        {
-          payment_intent: 'pi_3OMMcw2emXQAcOi81KejCnMp',
-        }
-        , {
-            stripeAccount: accountId
-          }
-      )},
+            tmr,
+            {
+            payment_intent: pi,
+        }, {
+            stripeAccount: accountId 
+        });
+    },
+
+    // const reader = await stripe.terminal.readers.setReaderDisplay(
+        // tmr,
+        // {
+        //   type: 'cart',
+        //   cart: {
+        //     line_items: [
+        //       {
+        //         description: 'Caramel latte',
+        //         amount: 659,
+        //         quantity: 1,
+        //       },
+        //       {
+        //         description: 'Dozen donuts',
+        //         amount: 1239,
+        //         quantity: 1,
+        //       },
+        //     ],
+        //     currency: 'eur',
+        //     tax: 100,
+        //     total: 1390,
+        //   },
+        // }
+    //   );},
 
     // Capturer un PaymentIntent après un paiement réussi via Stripe Terminal
     capturePaymentIntent: (paymentIntentId, accountId) => {
