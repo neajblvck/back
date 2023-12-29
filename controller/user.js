@@ -16,16 +16,13 @@ module.exports = (CentralUserDAO) => {
 
         login: async (req, res) => {
             try {
-                console.log(req.body)
                 const user = await CentralUserDAO.findUserByEmail(req.body.email);
                 if (!user) {
-                    console.log('pas duser')
                     return res.status(401).json({ message: 'Paire login/mot de passe incorrecte' });
                 }
                 
                 const valid = await bcrypt.compare(req.body.password, user.password);
                 if (!valid) {
-                    console.log('pas valide')
                     return res.status(401).json({ message: 'Paire login/mot de passe incorrecte' });
                 }
 
@@ -41,13 +38,11 @@ module.exports = (CentralUserDAO) => {
             }
         },
 
-        getAllUsers: async (req, res) => {
-            try {
-                const users = await CentralUserDAO.findAllUsers();
-                res.status(200).json({ users });
-            } catch (error) {
-                res.status(500).json({ error: error.message });
-            }
+        getAllUsers: (req, res) => {
+            const tenantId = req.auth.tenantId
+            CentralUserDAO.getAllUsers()
+                .then(users => res.status(200).json({ users }))
+                .catch(res.status(500).json({ error: error.message }))
         },
 
         getUser: async (req, res) => {

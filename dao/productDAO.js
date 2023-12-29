@@ -1,42 +1,107 @@
 const mongoose = require('mongoose');
-const ProductSchema = require('../models/product'); // Assurez-vous que c'est un schéma Mongoose
+const modelManager = require('../models/modelManager');
+const dynamicProductSchema = require('../models/dynamicProduct');
+const dynamiCategorySchema = require('../models/dynamicCategory');
 
-class ProductDAO {
-    constructor() {
-        this.models = {};
+class productDAO {
+    constructor(tenantId) {
+        this.tenantId = tenantId;
+        const modelName = 'Product'
+        const collectionName = 'products'
+        const schema = dynamicProductSchema(this.tenantId)
+        this.ProductModel = modelManager.getModelForTenant(this.tenantId, schema, modelName, collectionName);
+
     }
 
-    getModelForTenant(tenantId) {
-        if (!this.models[tenantId]) {
-            const collectionName = `tenant_${tenantId}_products`;
-            this.models[tenantId] = mongoose.model(`Product_${tenantId}`, ProductSchema, collectionName);
+    async createProduct(productData, options) {
+        const newProduct = new this.ProductModel(productData, options);
+        return await newProduct.save();
+    }
+
+    async getAllProducts() {
+        // const productModelName = `Product_${this.tenantId}`;
+        try {
+            return await this.ProductModel.find()
+            // .sort('orderCategory')
+            // .populate({
+            //     path: 'products',
+            //     model: productModelName 
+            // });
+        } catch (error) {
+            // Gérer l'erreur spécifiquement
+            if (!mongoose.modelNames().includes(productModelName)) {
+                return await this.CategoryModel.find().sort('orderCategory')
+            }
+            throw error;
         }
-        return this.models[tenantId];
     }
 
-    async createProduct(tenantId, productData) {
-        const Product = this.getModelForTenant(tenantId);
-        const product = new Product(productData);
-        await product.save();
-        return product;
+    async findProduct(productId) {
+        // const productModelName = `Product_${this.tenantId}`;
+
+        try {
+            return await this.ProductModel.findOne({ _id: productId })
+            // .populate({
+            //     path: 'products',
+            //     model: productModelName
+            // });
+        } catch (error) {
+            // Gérer l'erreur spécifiquement
+            if (!mongoose.modelNames().includes(productModelName)) {
+                return await this.CategoryModel.findOne({ _id: categoryId });
+            }
+            throw error;
+        }
     }
 
-    async findProductById(tenantId, productId) {
-        const Product = this.getModelForTenant(tenantId);
-        return await Product.findById(productId);
+    async updateProduct(productId, productData) {
+        try {
+
+            const updatedProduct = await this.ProductModel.updateOne(
+                { _id: productId },
+                { $set: productData },
+                // { new: true } // Renvoie le document mis à jour
+            );
+            return updatedProduct;
+        } catch (error) {
+            // Gestion des erreurs
+            throw new Error(`Erreur lors de la mise à jour de la catégorie: ${error.message}`);
+        }
     }
 
-    async updateProductById(tenantId, productId, updateData) {
-        const Product = this.getModelForTenant(tenantId);
-        return await Product.findByIdAndUpdate(productId, updateData, { new: true });
+    async updateManyProduct(productId, productData, options) {
+        try {
+
+            const updatedProduct = await this.ProductModel.updateMany(
+                productId,
+                productData,
+                options
+            );
+            return updatedProduct;
+        } catch (error) {
+            // Gestion des erreurs
+            throw new Error(`Erreur lors de la mise à jour de la catégorie: ${error.message}`);
+        }
     }
 
-    async deleteProductById(tenantId, productId) {
-        const Product = this.getModelForTenant(tenantId);
-        return await Product.findByIdAndDelete(productId);
+    async removeOptionFromProducts(optionId) {
+        console.log('dao removeOptionFromProduct')
+        await this.ProductModel.updateMany(
+            { option: optionId },
+            { $pull: { option: optionId } }
+        )
     }
 
-    // Ajoutez d'autres méthodes selon les besoins de votre application, comme trouver des produits par catégorie, etc.
+    async deleteProduct(productId) {
+        const CategoryModel = modelManager.getModelForTenant(this.tenantId, dynamiCategorySchema(this.tenantId), 'Category', 'categories');
+        await CategoryModel.updateMany(
+            { products: productId },
+            { $pull: { products: productId } }
+          );
+        return await this.ProductModel.deleteOne({ _id: productId });
+    }
+
 }
 
-module.exports = ProductDAO;
+
+module.exports = productDAO;

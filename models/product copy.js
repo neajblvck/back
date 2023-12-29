@@ -19,11 +19,6 @@ const ChoiceSchema = new mongoose.Schema({
 });
 
 const OptionSchema = new mongoose.Schema({
-  tenantId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    index: true
-  },
   name: { type: String, required: true },
   qtMinimal: {type:Number, required: false},
   qtMaximal: {type:Number, required: false},
@@ -112,4 +107,3 @@ const Ensemble = mongoose.model('Ensemble', ensembleSchema);
 
 
 module.exports = { Product, Category, Options, Ensemble }
-module.exports = {productSchema, OptionSchema, categorySchema};

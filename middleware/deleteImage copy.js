@@ -2,7 +2,6 @@ const fs = require('fs');
 
 const deleteImageMiddleware = (model, imageField) => {
     return (req, res, next) => {
-        let imageUrl = req.imageUrlToDelete
         model.findOne({ _id: req.params.id })
             .then(document => {
                 const imageUrl = document[imageField];

@@ -37,7 +37,7 @@ const authMiddleware = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) {
-            return res.status(401).json({ message: "Non autorisé" });
+            return res.status(401).json({ message: "Non autorisé, pas de token" });
         }
 
         const token = authHeader.split(' ')[1];
@@ -46,16 +46,14 @@ const authMiddleware = async (req, res, next) => {
         const tenantId = decodedToken.tenantId;
         const userId = decodedToken.userId;
 
-        const session = await Session.findOne({ userId: userId, sessionId: decodedToken.sessionId });
-        if (!session) {
-            return res.status(401).send('Session invalide ou expirée');
-        }
+        // const session = await Session.findOne({ userId: userId, sessionId: decodedToken.sessionId });
+        // if (!session) {
+        //     return res.status(401).send('Session invalide ou expirée');
+        // }
 
         req.auth = { userId: userId, tenantId: tenantId};
-        console.log('next')
         next();
     } catch (error) {
-        console.error("Erreur d'authentification:", error);
         return res.status(401).json({ message: "Non autorisé" });
     }
 };

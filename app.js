@@ -69,7 +69,9 @@ const CentralUserDAO = new UserDAO();
 
 // Routes
 const userRoute = require('./router/user')(CentralUserDAO);
+const categoryRoute = require('./router/category');
 const productRoute = require('./router/product');
+const optionRoute = require('./router/option');
 const printRoute = require('./router/print');
 const contentRoute = require('./router/content');
 const serviceRoute = require('./router/service');
@@ -79,9 +81,11 @@ const accountRoute = require('./router/account')
 
 
 app.use('/api/auth', userRoute);
-app.use('/api/content', contentRoute);
 app.use('/api/users', userRoute);
-app.use('/api/products', productRoute);
+app.use('/api/content', contentRoute);
+app.use('/api/category', categoryRoute);
+app.use('/api/product', productRoute);
+app.use('/api/option', optionRoute);
 app.use('/api/print', printRoute);
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/service', serviceRoute);
@@ -93,5 +97,6 @@ app.use('/account', accountRoute);
 // Middleware Multer
 const multer = require('multer');
 app.use(multer().single('photos'));
+
 
 module.exports = app;

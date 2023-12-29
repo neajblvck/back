@@ -13,11 +13,11 @@ const heroSchema = new mongoose.Schema({
 const validHexColor = {
     type: String,
     required: true,
-    trim: true,
+    // trim: true,
     match: /^#[0-9A-F]{6}$/i
 };
 
-const publicStyleSchema = new mongoose.Schema({
+const styleSchema = new mongoose.Schema({
     singleton: {
         type: Boolean,
         default: true,
@@ -25,26 +25,39 @@ const publicStyleSchema = new mongoose.Schema({
     },
     backgroundColor: {
         ...validHexColor,
+        default: '#FFFFFF',
     },
     homeColor: {
         ...validHexColor,
+        default: '#FFFFFF',
     },
     moduleColor: {
         ...validHexColor,
+        default: '#FFFFFF',
     },
     titleColor: {
         ...validHexColor,
+        default: '#000000', 
     },
     textColor: {
         ...validHexColor,
+        default: '#000000',
     },
     buttonColor: {
         ...validHexColor,
+        default: '#FF0000',
     }
 });
 
-const publicStyle = mongoose.model('publicStyle', publicStyleSchema);
-const heroModel = mongoose.model('heroModel', heroSchema);
-const homeModel = mongoose.model('homeModel', homeSchema);
 
-module.exports = { heroModel, homeModel, publicStyle };
+module.exports = {styleSchema, heroSchema, homeSchema};
+
+
+
+
+
+// const publicStyle = mongoose.model('publicStyle', publicStyleSchema);
+// const heroModel = mongoose.model('heroModel', heroSchema);
+// const homeModel = mongoose.model('homeModel', homeSchema);
+
+// module.exports = { heroModel, homeModel, publicStyle };

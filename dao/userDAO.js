@@ -1,43 +1,3 @@
-// const userModel = require('../models/user');
-
-// class UserDAO {
-//     constructor() {
-       
-//     }
-
-//     async createUser(tenantId, userData) {
-//         const collectionName = `tenant_${tenantId}_users`;
-//         const user = new userModel({ ...userData, collectionName: collectionName });
-//         await user.save();
-//         return user;
-//     }
-
-//     async findUserById(tenantId, id) {
-//         const collectionName = `tenant_${tenantId}_users`;
-//         return await userModel.findOne({ _id: id, collectionName: collectionName });
-//     }
-
-//     async findUserByEmail(tenantId, email) {
-//         const collectionName = `tenant_${tenantId}_users`;
-//         return await userModel.findOne({ email: email, collectionName: collectionName });
-//     }
-
-//     async updateUserById(tenantId, id, updateData) {
-//         const collectionName = `tenant_${tenantId}_users`;
-//         return await userModel.updateOne({ _id: id, collectionName: collectionName }, updateData);
-//     }
-
-//     async deleteUserById(tenantId, id) {
-//         const collectionName = `tenant_${tenantId}_users`;
-//         return await userModel.deleteOne({ _id: id, collectionName: collectionName });
-//     }
-
-   
-// }
-
-// module.exports = UserDAO;
-
-
 const mongoose = require('mongoose');
 const UserSchema = require('../models/user') 
 
@@ -80,8 +40,6 @@ class UserDAO {
         const User = this.getModelForTenant(tenantId);
         return await User.findByIdAndDelete(userId);
     }
-
-    // Ajoutez d'autres méthodes ici selon les besoins de votre application
 }
 
 module.exports = UserDAO;

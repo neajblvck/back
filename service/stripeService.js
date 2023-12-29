@@ -15,7 +15,7 @@ const stripeService = {
             },
             metadata: { tenant: tenantId },
             address: {
-                line1: accountDetails.address.street,
+                line1: accountDetails.address.line1,
                 line2: accountDetails.address.line2,
                 city: accountDetails.address.city,
                 postal_code: accountDetails.address.zip,
