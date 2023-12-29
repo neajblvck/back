@@ -15,7 +15,7 @@ router.patch('/:id', authMiddleware, multer, contentCtrl.updatePost);
 router.get('/', authMiddleware, contentCtrl.getContent);
 
 router.post('/hero', authMiddleware, multer, contentCtrl.createHero);
-router.patch('/hero/:id', authMiddleware, multer, contentCtrl.postHero);
+router.patch('/hero/:id', authMiddleware, multer, contentCtrl.editHero);
 router.get('/hero', authMiddleware, contentCtrl.getHero);
 
 

@@ -38,18 +38,18 @@ class ContentDAO {
     }
 
     async getHero() {
-        const Hero = modelManager.getModelForTenant(this.tenantId, heroSchema, 'Hero', 'hero');
-        return await Hero.find();
+        const HeroModel = modelManager.getModelForTenant(this.tenantId, heroSchema, 'Hero', 'hero');
+        return await HeroModel.find();
     }
 
     async findHeroById(heroId){
-        const Hero = modelManager.getModelForTenant(this.tenantId, heroSchema, 'Hero', 'hero');
+        const HeroModel = modelManager.getModelForTenant(this.tenantId, heroSchema, 'Hero', 'hero');
         return await HeroModel.find({ _id: heroId });
     }
 
     async updateHero(heroId, newImageData) {
-        const Hero = modelManager.getModelForTenant(this.tenantId, heroSchema, 'Hero', 'hero');
-        return await Hero.findByIdAndUpdate(heroId, newImageData, { new: true });
+        const HeroModel = modelManager.getModelForTenant(this.tenantId, heroSchema, 'Hero', 'hero');
+        return await HeroModel.findByIdAndUpdate(heroId, newImageData, { new: true });
     }
 
     // Public Style

@@ -90,33 +90,36 @@ exports.getHero = async (req, res) => {
 };
 
 // Mettre à jour un Hero existant
-exports.postHero = async (req, res) => {
+exports.editHero = async (req, res) => {
     try {
         const tenantId = req.auth.tenantId;
         const heroId = req.params.id;
+        const contentDAO = new ContentDAO(tenantId);
 
         if (Object.keys(req.files).length > 0) {
             const nouvelleImage = `${req.protocol}://${req.get('host')}/images/${req.files['imgHero'][0].filename}`;
 
-            // Récupérer l'ancien Hero pour obtenir l'URL de l'ancienne image
-            const oldHero = await contentDAO.findHeroById(tenantId, heroId);
+            // Récupérer et vérifier l'ancien Hero
+            const oldHero = await contentDAO.findHeroById(heroId);
+            // if (!oldHero[0] || !oldHero[0].imgHero) {
+            //     return res.status(404).json({ message: 'Ancien Hero non trouvé' });
+            // }
             const ancienneImage = oldHero[0].imgHero;
 
-            const contentDAO = new ContentDAO(tenantId);
+            // Mise à jour de l'image Hero
             await contentDAO.updateHero(heroId, { imgHero: nouvelleImage });
 
-            // Supprimer l'ancienne image
+            // Supprimer l'ancienne image après la mise à jour
             const ancienNomFichier = ancienneImage.split('/images/')[1];
-            fs.unlink(`images/${ancienNomFichier}`, (err) => {
-                if (err) {
-                    console.log("Erreur lors de la suppression de l'ancienne image : ", err);
-                }
-            });
+            fs.promises.unlink(`images/${ancienNomFichier}`)
+                .catch(err => console.log("Erreur lors de la suppression de l'ancienne image : ", err));
+            
             res.status(200).json({ message: 'Hero mis à jour !' });
         } else {
             res.status(400).json({ message: 'Aucune nouvelle image fournie' });
         }
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Erreur lors de la mise à jour' });
     }
 };
