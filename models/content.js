@@ -7,7 +7,7 @@ const homeSchema = new mongoose.Schema({
 });
 
 const heroSchema = new mongoose.Schema({
-    imgHero: String
+    imgHero: String,
 });
 
 const validHexColor = {
