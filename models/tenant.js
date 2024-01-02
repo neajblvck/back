@@ -34,6 +34,9 @@ const tenantSchema = new mongoose.Schema({
         default: true
     },
     stripeCustomerId: String,
+    stripeAccountId: String,
+    stripeTmr: String,
+    stripeTml: String,
     stripeSubscriptionId: String,
     subscriptionStatus: {
         type: String,

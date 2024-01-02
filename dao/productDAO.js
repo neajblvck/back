@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const modelManager = require('../models/modelManager');
 const dynamicProductSchema = require('../models/dynamicProduct');
 const dynamiCategorySchema = require('../models/dynamicCategory');
+const OptionSchema = require('../models/option');
+
 
 class productDAO {
     constructor(tenantId) {
@@ -51,6 +53,29 @@ class productDAO {
                 return await this.CategoryModel.findOne({ _id: categoryId });
             }
             throw error;
+        }
+    }
+
+    async findManyProduct(productIds){
+        try {
+            if(!mongoose.modelNames().includes(`Product_${this.tenantId}`)){
+                await modelManager.getModelForTenant(this.tenantId, dynamicProductSchema(this.tenantId), 'Product', 'products');
+            }
+            if(!mongoose.modelNames().includes(`Option_${this.tenantId}`)){
+                await modelManager.getModelForTenant(this.tenantId, OptionSchema, 'Option', 'options');
+            }
+
+            return await this.ProductModel.find({ '_id': { $in: productIds } })
+            .populate({
+                path: 'options',
+                model: `Option_${this.tenantId}`,
+                populate: {
+                    path: 'choices.choiceItem',
+                    model: `Product_${this.tenantId}`,
+                }
+            })
+        } catch (error){
+            throw error
         }
     }
 

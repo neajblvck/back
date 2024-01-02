@@ -76,6 +76,7 @@ const printRoute = require('./router/print');
 const contentRoute = require('./router/content');
 const serviceRoute = require('./router/service');
 const chatRoute = require('./router/chat');
+const paymentRoute = require('./router/payment')
 const stripeRoute = require('./router/stripe')
 const accountRoute = require('./router/account')
 
@@ -86,6 +87,7 @@ app.use('/api/content', contentRoute);
 app.use('/api/category', categoryRoute);
 app.use('/api/product', productRoute);
 app.use('/api/option', optionRoute);
+app.use('/api/payment', paymentRoute);
 app.use('/api/print', printRoute);
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/service', serviceRoute);
