@@ -5,7 +5,7 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
         // Récupérer des informations depuis l'objet paymentIntent
         // Par exemple, l'ID de la commande ou du client
         const orderId = paymentIntent.metadata.orderId; // Assurez-vous que cet ID est inclus dans les métadonnées lors de la création du PaymentIntent
-        console.log(paymentIntent)
+        console.log('controller webhook', paymentIntent)
         // Trouver et mettre à jour la commande correspondante dans la base de données
         // const order = await Order.findById(orderId);
         // if (!order) {

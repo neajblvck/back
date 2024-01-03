@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const OrderSchema = new mongoose.Schema({
     tenantId: {
-        type: mongoose.Schema.Types.ObjectId, // ou String, selon la manière dont vous identifiez les tenants
+        type: mongoose.Schema.Types.ObjectId, 
         required: true
     },
     customerId: {

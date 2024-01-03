@@ -110,8 +110,7 @@ app.use('/account', accountRoute);
 
 const stripeWebhookValidator = require('./middleware/stripeWebhookValidator');
 const stripeWebhooks = require('./webhooks/stripeWebhooks');
-// This is your Stripe CLI webhook secret for testing your endpoint locally.
-const endpointSecret = "whsec_9702817e82430ffa05ac3fd38818d980744329e32d972bc47b12bbf051bac31f";
+
 // webhook stripe
 app.post('/webhooks/stripe', express.raw({type: 'application/json'}), stripeWebhookValidator, stripeWebhooks);
 

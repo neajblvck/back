@@ -1,4 +1,4 @@
-const stripe = require('stripe')('sk_test_51NYJ6hGzmWR6qGMpLclDToxuhDCRCUgxIOdOWVXXYu1NpltqCLlyPgCaN9IrMRuvOgCzorJlY5gmaBDKgBZ6tBJ1001Rld5pVT');
+const stripe = process.env.STRIPE_API_KEY
 
 const stripeService = {
 
@@ -129,10 +129,6 @@ const stripeService = {
             tmr,
             {
             payment_intent: pi,
-            metadata: {
-                connected_account_id: accountId,
-                tenant: tenantId,
-            }
         }, {
             stripeAccount: accountId 
         });
