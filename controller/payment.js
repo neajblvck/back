@@ -23,7 +23,7 @@ exports.createPaymentIntent = async (req, res) => {
     const currency = tenant.stripeCurrency || 'eur'
 
     const paymentIntent = await stripeService.createTerminalPaymentIntent(tenantId, accountId, amount, currency);
-    const paymentStatus = await stripeService.processPayment(tenantId, accountId, tmr, paymentIntent.id);
+    const paymentStatus = await stripeService.processPayment(accountId, tmr, paymentIntent.id);
     
     res.status(200).json({
         paymentIntentId: paymentIntent.id,

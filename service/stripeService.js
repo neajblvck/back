@@ -1,4 +1,4 @@
-const stripe = process.env.STRIPE_API_KEY
+const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 
 const stripeService = {
 
@@ -108,6 +108,7 @@ const stripeService = {
 
     // Créer un PaymentIntent pour Stripe Terminal
     createTerminalPaymentIntent: (tenantId, accountId, amount, currency) => {
+        console.log('accountId', accountId)
         return stripe.paymentIntents.create({
             amount: amount,
             currency: currency,
