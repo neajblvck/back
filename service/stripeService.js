@@ -107,13 +107,17 @@ const stripeService = {
     },
 
     // Créer un PaymentIntent pour Stripe Terminal
-    createTerminalPaymentIntent: (accountId, amount, currency) => {
+    createTerminalPaymentIntent: (tenantId, accountId, amount, currency) => {
         return stripe.paymentIntents.create({
             amount: amount,
-            currency: 'eur',
+            currency: currency,
             payment_method_types: ['card_present'],
             capture_method: 'automatic',
             application_fee_amount: 123,
+            metadata: {
+                connected_account_id: accountId,
+                tenant: tenantId,
+            }
         }, {
             stripeAccount: accountId
         });
@@ -125,6 +129,10 @@ const stripeService = {
             tmr,
             {
             payment_intent: pi,
+            metadata: {
+                connected_account_id: accountId,
+                tenant: tenantId,
+            }
         }, {
             stripeAccount: accountId 
         });

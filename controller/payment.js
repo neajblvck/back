@@ -20,22 +20,15 @@ exports.createPaymentIntent = async (req, res) => {
     const amount = totalAmount*100
     const tmr = tenant.stripeTmr || 'tmr_FX8QTwhRuXzLuN';
     const accountId = tenant.stripeAccountId || 'acct_1OMHyO2emXQAcOi8';
-    const currency = 'eur';
+    const currency = tenant.stripeCurrency || 'eur'
 
-    stripeService.createTerminalPaymentIntent(accountId, amount, currency)
-            .then(paymentIntent => {
-                // Étape 2: Processus de Paiement avec le Payment Intent créé
-                const pi = paymentIntent.id; // ID du Payment Intent
-                return stripeService.processPayment(accountId, tmr, pi);
-            })
-            .then(response => {
-                // Réponse du processus de paiement
-                res.status(200).json(response);
-            })
-            .catch(error => {
-                // Gestion des erreurs
-                res.status(500).send(error.message);
-            });
+    const paymentIntent = await stripeService.createTerminalPaymentIntent(tenantId, accountId, amount, currency);
+    const paymentStatus = await stripeService.processPayment(tenantId, accountId, tmr, paymentIntent.id);
+    
+    res.status(200).json({
+        paymentIntentId: paymentIntent.id,
+        paymentStatus: paymentStatus.status
+    })
 
     } catch(error){
         res.status(500).json({ error });
@@ -45,3 +38,7 @@ exports.createPaymentIntent = async (req, res) => {
 
 };
 
+// annuler payment Intent
+exports.cancelPaymentIntent = async (req, res) => {
+    const reader = await stripe.terminal.readers.cancelAction('tmr_xxx');
+}

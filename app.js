@@ -61,7 +61,19 @@ mongoose
 
 // Utilisation de bodyParser
 const bodyParser = require('body-parser');
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
+
+
+// Use JSON parser for all non-webhook routes
+app.use((req, res, next) => {
+  if (req.originalUrl === "/webhook") {
+    next();
+  } else {
+    bodyParser.json()(req, res, next);
+  }
+});
+
+
 
 // DAO
 const UserDAO = require('./dao/CentralUserDAO');
@@ -80,7 +92,6 @@ const paymentRoute = require('./router/payment')
 const stripeRoute = require('./router/stripe')
 const accountRoute = require('./router/account')
 
-
 app.use('/api/auth', userRoute);
 app.use('/api/users', userRoute);
 app.use('/api/content', contentRoute);
@@ -95,6 +106,16 @@ app.use('/chat', chatRoute);
 app.use('/stripe', stripeRoute);
 app.use('/account', accountRoute);
 
+
+
+const stripeWebhookValidator = require('./middleware/stripeWebhookValidator');
+const stripeWebhooks = require('./webhooks/stripeWebhooks');
+// This is your Stripe CLI webhook secret for testing your endpoint locally.
+const endpointSecret = "whsec_9702817e82430ffa05ac3fd38818d980744329e32d972bc47b12bbf051bac31f";
+// webhook stripe
+app.post('/webhooks/stripe', express.raw({type: 'application/json'}), stripeWebhookValidator, stripeWebhooks);
+
+app.listen(4242, () => console.log('Running on port 4242'));
 
 // Middleware Multer
 const multer = require('multer');
