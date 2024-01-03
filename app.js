@@ -66,7 +66,7 @@ const bodyParser = require('body-parser');
 
 // Use JSON parser for all non-webhook routes
 app.use((req, res, next) => {
-  if (req.originalUrl === "/webhook") {
+  if (req.originalUrl === "/webhooks") {
     next();
   } else {
     bodyParser.json()(req, res, next);
