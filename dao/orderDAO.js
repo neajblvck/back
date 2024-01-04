@@ -88,18 +88,23 @@ class orderDAO {
             throw error;
         }
     }
+
     async updateOrderByPi(pi, orderData, options) {
         try {
-            const updatedOrder = await this.OrderModel.updateOne(
+            // Ajoutez 'new: true' pour obtenir le document mis à jour
+    
+            const updatedOrder = await this.OrderModel.findOneAndUpdate(
                 { paymentIntentId: pi },
                 { $set: orderData },
                 options
-
             );
+    
+            if (!updatedOrder) {
+                throw new Error(`Aucune commande trouvée avec l'ID de PaymentIntent ${pi}`);
+            }
+    
             return updatedOrder;
         } catch (error) {
-            console.log(error)
-            // Gestion des erreurs
             throw new Error(`Erreur lors de la mise à jour de la commande: ${error.message}`);
         }
     }

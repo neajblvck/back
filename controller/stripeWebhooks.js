@@ -14,7 +14,7 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
                 paymentMethodType: paymentIntent.payment_method,
             }
         }
-        console.log(paymentIntent)
+        console.log(paymentIntent.status)
 
 
         const orderDAO = new OrderDAO(tenantId)

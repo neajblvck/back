@@ -1,7 +1,6 @@
 // stripeController.js
 const stripeService = require('../service/stripeService.js');
 const Tenant = require('../models/tenant'); ``
-const mongoose = require('mongoose');
 const ProductDAO = require('../dao/productDAO');
 const OrderDAO = require('../dao/orderDAO');
 const { calculTotalAmountFromDB } = require('../utils/shopCartUtils.js');
@@ -25,13 +24,12 @@ exports.createPaymentIntent = async (req, res) => {
 
 
     const paymentIntent = await stripeService.createTerminalPaymentIntent(tenantId, accountId, amount, currency);
-        console.log(paymentIntent)
     const orderData = {
         accountId: accountId,
         amount: totalAmount,
+        paymentIntentId: paymentIntent.id,
         paymentIntent:
         {
-            stripePaymentIntentId: paymentIntent.id,
             application_fee_amount: paymentIntent.application_fee_amount,
             stripeApplication: paymentIntent.application,
             status: paymentIntent.status, 
