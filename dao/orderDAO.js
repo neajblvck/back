@@ -88,11 +88,11 @@ class orderDAO {
             throw error;
         }
     }
-    async updateOrder(orderId, orderData, options) {
+    async updateOrderByPi(pi, orderData, options) {
         try {
             const updatedOrder = await this.OrderModel.updateOne(
-                { _id: orderId },
-                orderData,
+                { paymentIntentId: pi },
+                { $set: { orderData } },
                 options
                 // { new: true } 
             );
