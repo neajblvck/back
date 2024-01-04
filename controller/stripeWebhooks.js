@@ -14,7 +14,7 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
                 paymentMethodType: paymentIntent.payment_method,
             }
         }
-        const updateOrder = await orderDAO.updateOrder(paymentIntent.id, orderData);
+        const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData);
         console.log(updateOrder)
         // Trouver et mettre à jour la commande correspondante dans la base de données
         // const order = await Order.findById(orderId);
