@@ -92,12 +92,12 @@ class orderDAO {
         try {
             const updatedOrder = await this.OrderModel.updateOne(
                 { paymentIntentId: pi },
-                { $set: { orderData } },
+                { $set: orderData },
                 options
-                // { new: true } 
             );
             return updatedOrder;
         } catch (error) {
+            console.log(error)
             // Gestion des erreurs
             throw new Error(`Erreur lors de la mise à jour de la commande: ${error.message}`);
         }

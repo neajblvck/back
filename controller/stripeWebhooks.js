@@ -5,7 +5,7 @@ const OrderDAO = require('../dao/orderDAO');
 const handlePaymentIntentSucceeded = async (paymentIntent) => {
     try {
         const tenantId = paymentIntent.metadata.tenant
-        const orderDAO = new OrderDAO(tenantId)
+        
         const orderData = {
             paymentIntent: {
                 status: paymentIntent.status, 
@@ -14,21 +14,12 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
                 paymentMethodType: paymentIntent.payment_method,
             }
         }
+
+
+        const orderDAO = new OrderDAO(tenantId)
         const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData);
-        console.log(updateOrder)
-        // Trouver et mettre à jour la commande correspondante dans la base de données
-        // const order = await Order.findById(orderId);
-        // if (!order) {
-        //     throw new Error(`Commande avec ID ${orderId} non trouvée.`);
-        // }
-
-        // order.status = 'paid'; // Mettre à jour le statut de la commande
-        // await order.save();
-
-        // Effectuer d'autres actions, comme envoyer un email de confirmation
-        // sendConfirmationEmail(order); // Imaginons une fonction pour envoyer un email
-
-        console.log(`Paiement réussi pour la commande ${orderId}`);
+        
+        console.log(`Paiement réussi pour la commande ${updateOrder}`);
     } catch (error) {
         console.error(`Erreur dans handlePaymentIntentSucceeded: ${error.message}`);
         // Gestion des erreurs supplémentaires si nécessaire
