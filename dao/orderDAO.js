@@ -94,6 +94,7 @@ class orderDAO {
                 { paymentIntentId: pi },
                 { $set: orderData },
                 options
+
             );
             return updatedOrder;
         } catch (error) {

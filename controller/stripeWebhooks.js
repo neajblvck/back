@@ -14,12 +14,13 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
                 paymentMethodType: paymentIntent.payment_method,
             }
         }
+        console.log(paymentIntent)
 
 
         const orderDAO = new OrderDAO(tenantId)
-        const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData);
-        
-        console.log(`Paiement réussi pour la commande ${updateOrder}`);
+        const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
+
+        console.log(updateOrder)
     } catch (error) {
         console.error(`Erreur dans handlePaymentIntentSucceeded: ${error.message}`);
         // Gestion des erreurs supplémentaires si nécessaire
