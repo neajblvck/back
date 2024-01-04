@@ -5,7 +5,6 @@ const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 module.exports = (request, response, next) => {
     try {
         request.event = stripe.webhooks.constructEvent(request.body, request.headers['stripe-signature'], endpointSecret);
-        console.log('request.event', request.event)
         next();
     } catch (err) {
         response.status(400).send(`Webhook Error: ${err.message}`);

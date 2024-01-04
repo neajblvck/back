@@ -1,11 +1,24 @@
+const OrderDAO = require('../dao/orderDAO');
+
 // Controllers pour les différents types d'événements Stripe
 
 const handlePaymentIntentSucceeded = async (paymentIntent) => {
     try {
-        // Récupérer des informations depuis l'objet paymentIntent
-        // Par exemple, l'ID de la commande ou du client
-        const orderId = paymentIntent.metadata.orderId; // Assurez-vous que cet ID est inclus dans les métadonnées lors de la création du PaymentIntent
-        console.log('controller webhook', paymentIntent)
+        const tenantId = paymentIntent.metadata.tenant
+        const orderDAO = new OrderDAO(tenantId)
+        const orderData = {
+            paymentIntent: {
+                status: paymentIntent.status, 
+                canceledAt: paymentIntent.canceled_at,
+                cancellationReason: paymentIntent.cancellation_reason,
+                paymentMethodType: paymentIntent.payment_method,
+            }
+        }
+        const updateOrder = await orderDAO.updateOrder(
+            { paymentIntentId: paymentIntent.id },
+            { $set: { orderData } }
+        );
+        
         // Trouver et mettre à jour la commande correspondante dans la base de données
         // const order = await Order.findById(orderId);
         // if (!order) {
