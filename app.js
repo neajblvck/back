@@ -6,8 +6,8 @@ const config = require('./config/config');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
+// const session = require('express-session');
+// const MongoStore = require('connect-mongo');
 
 
 
@@ -68,21 +68,21 @@ mongoose
 
 // Cookies
 // app.use(cookieParser());
-app.use(session({
-  secret: process.env.SECRET_SESSION_COOKIES, // Clé secrète pour signer le cookie de session
-  name: 'sessionId',
-  resave: false, // Évite de sauvegarder la session si elle n'a pas été modifiée si false
-  saveUninitialized: false, // Sauvegarde les sessions non initialisées si true
-  store: MongoStore.create({
-    mongoUrl: `mongodb+srv://${config.db.user}:${config.db.password}@${config.db.name}.${config.db.host}`,
-    collection: 'sessions'
-  }),
-  cookie: {
-    httpOnly: true, // Empêche l'accès au cookie via JavaScript côté client
-    maxAge: 1000 * 60 * 60 * 24, // Durée de vie du cookie (ici, 1 jour)
-    secure: false, // N'envoie le cookie que sur HTTPS ************************************ A METTRE SUR TRUE EN PRODUCTION
-  }
-}));
+// app.use(session({
+//   secret: process.env.SECRET_SESSION_COOKIES, // Clé secrète pour signer le cookie de session
+//   name: 'sessionId',
+//   resave: false, // Évite de sauvegarder la session si elle n'a pas été modifiée si false
+//   saveUninitialized: false, // Sauvegarde les sessions non initialisées si true
+//   store: MongoStore.create({
+//     mongoUrl: `mongodb+srv://${config.db.user}:${config.db.password}@${config.db.name}.${config.db.host}`,
+//     collection: 'sessions'
+//   }),
+//   cookie: {
+//     httpOnly: true, // Empêche l'accès au cookie via JavaScript côté client
+//     maxAge: 1000 * 60 * 60 * 24, // Durée de vie du cookie (ici, 1 jour)
+//     secure: false, // N'envoie le cookie que sur HTTPS ************************************ A METTRE SUR TRUE EN PRODUCTION
+//   }
+// }));
 
 
 // Utilisation de bodyParser
