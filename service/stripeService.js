@@ -84,7 +84,6 @@ const stripeService = {
 
     // Enregistrer un lecteur Stripe Terminal pour un compte connecté
     registerTerminalReader: (accountId, registrationCode, locationId) => {
-        console.log(accountId, registrationCode, locationId)
 
         return stripe.terminal.readers.create({
             registration_code: registrationCode,
@@ -108,7 +107,6 @@ const stripeService = {
 
     // Créer un PaymentIntent pour Stripe Terminal
     createTerminalPaymentIntent: (tenantId, accountId, amount, currency) => {
-        console.log('accountId', accountId)
         return stripe.paymentIntents.create({
             amount: amount,
             currency: currency,
@@ -158,6 +156,10 @@ const stripeService = {
         //   },
         // }
     //   );},
+
+    cancelPaymentIntent: (pi) => {
+        return stripe.paymentIntents.cancel(pi);
+    },
 
     // Capturer un PaymentIntent après un paiement réussi via Stripe Terminal
     capturePaymentIntent: (paymentIntentId, accountId) => {

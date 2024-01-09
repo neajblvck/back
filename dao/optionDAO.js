@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const modelManager = require('../models/modelManager');
+const modelManager = require('../utils/modelManager');
 const OptionSchema = require('../models/option');
 
 class optionDAO {

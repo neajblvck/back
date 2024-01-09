@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const modelManager = require('../models/modelManager');
+const modelManager = require('../utils/modelManager');
 const dynamicProductSchema = require('../models/dynamicProduct');
 const dynamiCategorySchema = require('../models/dynamicCategory');
 const OptionSchema = require('../models/option');

@@ -1,4 +1,4 @@
-const modelManager = require('../models/modelManager');
+const modelManager = require('../utils/modelManager');
 const {styleSchema, heroSchema, homeSchema} = require('../models/content');
 
 class ContentDAO {

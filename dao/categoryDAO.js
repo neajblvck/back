@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const modelManager = require('../models/modelManager');
+const modelManager = require('../utils/modelManager');
 const dynamicCategorySchema = require('../models/dynamicCategory');
 const OptionSchema = require('../models/option');
 const dynamicProductSchema = require('../models/dynamicProduct');
@@ -48,7 +48,6 @@ class categoryDAO {
                 })
         } catch (error) {
             try {
-                console.log('err getAllcat:', error)
             // Recréation des modèles manquants
             await modelManager.getModelForTenant(this.tenantId, dynamicProductSchema(this.tenantId), 'Product', 'products');
             await modelManager.getModelForTenant(this.tenantId, OptionSchema, 'Option', 'options');

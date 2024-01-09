@@ -1,5 +1,10 @@
 const stripeWebhooksController = require('../controller/stripeWebhooks.js');
 
+
+// CONSEIL: webhook à écouter = terminal.reader.action_succeeded, terminal_reader_timeout
+
+
+
 module.exports = (request, response) => {
     const event = request.event;
     
@@ -10,7 +15,7 @@ module.exports = (request, response) => {
         case 'payment_intent.payment_failed':
             stripeWebhooksController.handlePaymentIntentFailed(event.data.object);
             break;
-        case 'payment_intent.requires_action':
+        case 'terminal.reader.action_updated':
             stripeWebhooksController.handlePaymentIntentRequiresAction(event.data.object);
             break;
         // ...

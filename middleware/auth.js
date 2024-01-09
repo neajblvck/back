@@ -39,18 +39,15 @@ const authMiddleware = async (req, res, next) => {
         if (!authHeader) {
             return res.status(401).json({ message: "Non autorisé, pas de token" });
         }
-
         const token = authHeader.split(' ')[1];
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
         const tenantId = decodedToken.tenantId;
         const userId = decodedToken.userId;
 
-        // const session = await Session.findOne({ userId: userId, sessionId: decodedToken.sessionId });
-        // if (!session) {
-        //     return res.status(401).send('Session invalide ou expirée');
-        // }
+        // const sessionId = req.sessionID;
 
+        
         req.auth = { userId: userId, tenantId: tenantId};
         next();
     } catch (error) {

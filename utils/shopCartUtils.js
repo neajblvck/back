@@ -44,7 +44,7 @@ const calculTotalAmountFromDB = (shopCart, productsFromDb) => {
                 }
 
                 selectedOption.choices.forEach(choice => {
-                    const choiceFromDb = optionFromDb.choices.find(c => c.choiceItem._id.toString() === choice._id.toString());
+                    const choiceFromDb = optionFromDb.choices.find(c => c._id.toString() === choice._id.toString());
                     if (!choiceFromDb) {
                         throw new Error('Un problème est survenu avec le panier');
                     }

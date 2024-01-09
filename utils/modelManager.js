@@ -11,7 +11,7 @@ class ModelManager {
         const collectionName = `tenant_${tenantId}_${collectionPrefix}`;        
         if (!this.models[modelKey] && tenantId) {
             this.models[modelKey] = mongoose.model(modelKey, schema, collectionName);
-            console.log(`MODELMANAGER ==> Modèle créé : ${modelKey}`);
+            // console.log(`MODELMANAGER ==> Modèle créé : ${modelKey}`);
         }
 
         return this.models[modelKey];

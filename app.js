@@ -1,4 +1,4 @@
-   require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
@@ -6,6 +6,8 @@ const config = require('./config/config');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
 
 
@@ -15,7 +17,7 @@ const rateLimit = require('express-rate-limit');
 // // Middleware rate limit pour limiter les requêtes
 const limiter = rateLimit({
   windowMs: 30 * 60 * 1000, // 15 minutes
-  max:1000, // Limite de requêtes par IP pendant la période spécifiée
+  max: 1000, // Limite de requêtes par IP pendant la période spécifiée
   message: 'Trop de requêtes, veuillez réessayer plus tard.',
 });
 
@@ -32,21 +34,25 @@ app.use(
   })
 );
 
+// pour empêcher intru de detecter l'uilisation d'express
+app.disable('x-powered-by')
+
 mongoose.set('strictQuery', false);  // Pour désactiver strictQuery
 app.set('trust proxy', 1); // Activer 'trust proxy'
-
 
 
 // Gestion de CORS
 const corsOrigin = process.env.CORS_ORIGIN;
 
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', corsOrigin);
   res.setHeader(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization'
   );
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  // Autorise les credentials (cookies)
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
@@ -58,6 +64,26 @@ mongoose
   })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch((err) => console.log('Connexion à MongoDB échouée.. !', err));
+
+
+// Cookies
+// app.use(cookieParser());
+app.use(session({
+  secret: process.env.SECRET_SESSION_COOKIES, // Clé secrète pour signer le cookie de session
+  name: 'sessionId',
+  resave: false, // Évite de sauvegarder la session si elle n'a pas été modifiée si false
+  saveUninitialized: false, // Sauvegarde les sessions non initialisées si true
+  store: MongoStore.create({
+    mongoUrl: `mongodb+srv://${config.db.user}:${config.db.password}@${config.db.name}.${config.db.host}`,
+    collection: 'sessions'
+  }),
+  cookie: {
+    httpOnly: true, // Empêche l'accès au cookie via JavaScript côté client
+    maxAge: 1000 * 60 * 60 * 24, // Durée de vie du cookie (ici, 1 jour)
+    secure: false, // N'envoie le cookie que sur HTTPS ************************************ A METTRE SUR TRUE EN PRODUCTION
+  }
+}));
+
 
 // Utilisation de bodyParser
 const bodyParser = require('body-parser');
@@ -93,6 +119,8 @@ const paymentRoute = require('./router/payment')
 const stripeRoute = require('./router/stripe')
 const accountRoute = require('./router/account')
 
+const sseRoute = require('./router/sse');
+
 app.use('/api/auth', userRoute);
 app.use('/api/users', userRoute);
 app.use('/api/content', contentRoute);
@@ -107,19 +135,22 @@ app.use('/chat', chatRoute);
 app.use('/stripe', stripeRoute);
 app.use('/account', accountRoute);
 
+app.use('/sse', sseRoute);
 
 
 const stripeWebhookValidator = require('./middleware/stripeWebhookValidator');
 const stripeWebhooks = require('./webhooks/stripeWebhooks');
 
 // webhook stripe
-app.post('/webhooks/stripe', express.raw({type: 'application/json'}), stripeWebhookValidator, stripeWebhooks);
+app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), stripeWebhookValidator, stripeWebhooks);
 
 app.listen(4242, () => console.log('Running on port 4242'));
 
 // Middleware Multer
 const multer = require('multer');
 app.use(multer().single('photos'));
+
+
 
 
 module.exports = app;

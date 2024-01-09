@@ -14,8 +14,8 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
                 paymentMethodType: paymentIntent.payment_method,
             }
         }
-        console.log(paymentIntent.status)
 
+        console.log(paymentIntent.status)
 
         const orderDAO = new OrderDAO(tenantId)
         const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
@@ -27,8 +27,30 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
     }
 };
 
-const handlePaymentIntentFailed = (paymentIntent) => {
-    // Logique pour gérer un paiement échoué
+const handlePaymentIntentFailed = async (paymentIntent) => {
+    try {
+        const tenantId = paymentIntent.metadata.tenant
+        
+        const orderData = {
+            paymentIntent: {
+                status: paymentIntent.status, 
+                canceledAt: paymentIntent.canceled_at,
+                cancellationReason: paymentIntent.cancellation_reason,
+                paymentMethodType: paymentIntent.payment_method,
+            }
+        }
+
+        console.log(paymentIntent.status)
+
+        const orderDAO = new OrderDAO(tenantId)
+        const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
+
+        
+        console.log(updateOrder)
+    } catch (error) {
+        console.error(`Erreur dans handlePaymentIntentSucceeded: ${error.message}`);
+        // Gestion des erreurs supplémentaires si nécessaire
+    }
 };
 
 const handlePaymentIntentRequiresAction = (paymentIntent) => {
