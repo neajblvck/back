@@ -119,7 +119,7 @@ const paymentRoute = require('./router/payment')
 const stripeRoute = require('./router/stripe')
 const accountRoute = require('./router/account')
 
-const sseRoute = require('./router/sse');
+// const sseRoute = require('./router/sse');
 
 app.use('/api/auth', userRoute);
 app.use('/api/users', userRoute);
@@ -135,7 +135,7 @@ app.use('/chat', chatRoute);
 app.use('/stripe', stripeRoute);
 app.use('/account', accountRoute);
 
-app.use('/sse', sseRoute);
+// app.use('/sse', sseRoute);
 
 
 const stripeWebhookValidator = require('./middleware/stripeWebhookValidator');
