@@ -9,6 +9,7 @@ exports.createPaymentIntent = async (req, res) => {
     const tenantId = req.auth.tenantId
 
     const { shopCartData, orderType, idSSE } = req.body
+    console.log('createPi controller:', idSSE)
     const productIds = shopCartData.map(item => item._id);
     const productDAO = new ProductDAO(tenantId);
     const productsFromDB = await productDAO.findManyProduct(productIds)

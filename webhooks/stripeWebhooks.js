@@ -7,14 +7,13 @@ const stripeWebhooksController = require('../controller/stripeWebhooks.js');
 
 module.exports = (req, res) => {
     const event = req.event;
-    console.log(req)
     
     switch (event.type) {
         case 'payment_intent.succeeded':
-            stripeWebhooksController.handlePaymentIntentSucceeded(event.data.object);
+            stripeWebhooksController.handlePaymentIntentSucceeded(req, event.data.object);
             break;
         case 'payment_intent.payment_failed':
-            stripeWebhooksController.handlePaymentIntentFailed(event.data.object);
+            stripeWebhooksController.handlePaymentIntentFailed( event.data.object);
             break;
         case 'terminal.reader.action_updated':
             stripeWebhooksController.handlePaymentIntentRequiresAction(event.data.object);
