@@ -35,6 +35,7 @@ class SSEClient {
      */
     send(message) {
       const { id, type = 'message', retry, data } = message;
+      console.log('send', id, data)
   
       if (id) {
         this.context.write(`id: ${id}\n`);

@@ -13,6 +13,7 @@ class SSEManager {
    * @param {Object} context - La réponse HTTP
    */
   open(clientId, context) {
+    console.log('open clientId', clientId)
     const client = new SSEClient(context);
     client.initialize();
     this.clients.set(clientId, client);
@@ -47,9 +48,8 @@ class SSEManager {
    */
   unicast(clientId, message) {
     const client = this.clients.get(clientId);
-    console.log('client non trouvé', client)
     if (client) {
-      console.log('unicast SSEmanager client présent:', client, message)
+      console.log('unicast SSEmanager client présent')
       client.send(message);
     }
   }
