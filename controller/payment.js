@@ -8,10 +8,11 @@ const { calculTotalAmountFromDB } = require('../utils/shopCartUtils.js');
 exports.createPaymentIntent = async (req, res) => {
     const tenantId = req.auth.tenantId
 
-    const { shopCartData, orderType } = req.body
+    const { shopCartData, orderType, idSSE } = req.body
     const productIds = shopCartData.map(item => item._id);
     const productDAO = new ProductDAO(tenantId);
     const productsFromDB = await productDAO.findManyProduct(productIds)
+
 
     try {
     const totalAmount = await calculTotalAmountFromDB(shopCartData, productsFromDB)
@@ -23,10 +24,11 @@ exports.createPaymentIntent = async (req, res) => {
     const currency = tenant.stripeCurrency || 'eur'
 
 
-    const paymentIntent = await stripeService.createTerminalPaymentIntent(tenantId, accountId, amount, currency);
+    const paymentIntent = await stripeService.createTerminalPaymentIntent(tenantId, accountId, amount, currency, idSSE);
     const orderData = {
         accountId: accountId,
         amount: totalAmount,
+        orderType: orderType,
         paymentIntentId: paymentIntent.id,
         paymentIntent:
         {
@@ -38,7 +40,7 @@ exports.createPaymentIntent = async (req, res) => {
     const orderDAO = new OrderDAO(tenantId)
     const newOrder = await orderDAO.saveOrder(orderData)
 
-    const paymentStatus = await stripeService.processPayment(accountId, tmr, paymentIntent.id)
+    const paymentStatus = await stripeService.processPayment(accountId, tmr, paymentIntent.id, currency)
     
     res.status(200).json({
         paymentIntentId: paymentIntent.id,

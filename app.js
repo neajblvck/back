@@ -9,9 +9,11 @@ const rateLimit = require('express-rate-limit');
 // const session = require('express-session');
 // const MongoStore = require('connect-mongo');
 
-
-
 // app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+
+
+
+
 
 
 // // Middleware rate limit pour limiter les requêtes
@@ -52,7 +54,7 @@ app.use((req, res, next) => {
   );
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   // Autorise les credentials (cookies)
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // res.setHeader('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
@@ -99,7 +101,9 @@ app.use((req, res, next) => {
   }
 });
 
-
+const SSEManager = require('./utils/sseManager');
+const sseManager = new SSEManager();
+app.set('sseManager', sseManager);
 
 
 // DAO
@@ -118,8 +122,7 @@ const chatRoute = require('./router/chat');
 const paymentRoute = require('./router/payment')
 const stripeRoute = require('./router/stripe')
 const accountRoute = require('./router/account')
-
-// const sseRoute = require('./router/sse');
+const sseRoute = require('./router/sse')
 
 app.use('/api/auth', userRoute);
 app.use('/api/users', userRoute);
@@ -135,7 +138,8 @@ app.use('/chat', chatRoute);
 app.use('/stripe', stripeRoute);
 app.use('/account', accountRoute);
 
-// app.use('/sse', sseRoute);
+app.use('/sse/events', sseRoute);
+
 
 
 const stripeWebhookValidator = require('./middleware/stripeWebhookValidator');

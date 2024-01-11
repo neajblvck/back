@@ -1,10 +1,12 @@
 const OrderDAO = require('../dao/orderDAO');
 
+
 // Controllers pour les différents types d'événements Stripe
 
 const handlePaymentIntentSucceeded = async (paymentIntent) => {
     try {
         const tenantId = paymentIntent.metadata.tenant
+        const idSSE = paymentIntent.metadata.idSSE
         
         const orderData = {
             paymentIntent: {
@@ -19,6 +21,18 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
 
         const orderDAO = new OrderDAO(tenantId)
         const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
+
+        const sseManager = req.app.get('sseManager');
+
+        if (idSSE) {
+            // Envoi d'une notification SSE au client spécifique
+            sseManager.unicast(idSSE, {
+              id: Date.now(),
+              type: 'payment-update',
+              data: { status: 'succeeded', message: 'Votre paiement a été validé.' }
+            });
+          }
+
 
         console.log(updateOrder)
     } catch (error) {

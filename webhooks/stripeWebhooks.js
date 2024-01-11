@@ -5,8 +5,9 @@ const stripeWebhooksController = require('../controller/stripeWebhooks.js');
 
 
 
-module.exports = (request, response) => {
-    const event = request.event;
+module.exports = (req, res) => {
+    const event = req.event;
+    console.log(req)
     
     switch (event.type) {
         case 'payment_intent.succeeded':
@@ -23,5 +24,5 @@ module.exports = (request, response) => {
             console.log(`Unhandled event type ${event.type}`);
     }
 
-    response.send({ received: true });
+    res.send({ received: true });
 };
