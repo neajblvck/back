@@ -26,7 +26,6 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
         const sseManager = req.app.get('sseManager');
         if (idSSE) {
             // Envoi d'une notification SSE au client spécifique
-            console.log('idSSE trouvé go SSEMANAGER', idSSE)
             sseManager.unicast(idSSE, {
               id: Date.now(),
               type: 'payment-update',

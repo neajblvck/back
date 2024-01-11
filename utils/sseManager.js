@@ -51,6 +51,8 @@ class SSEManager {
     if (client) {
       console.log('unicast SSEmanager client présent')
       client.send(message);
+    } else {
+      console.log('unicast SSEmanager, client non trouvé,', 'client id:', clientId, 'client', client )
     }
   }
  
