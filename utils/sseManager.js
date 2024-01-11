@@ -1,11 +1,11 @@
 const SSEClient = require('../utils/sseClient');
- 
+
 class SSEManager {
   constructor() {
     /* On garde une liste de tous les clients connectés */
     this.clients = new Map();
   }
- 
+
   /**
    * Initialise une nouvelle connexion avec un client
    * @function open
@@ -17,8 +17,16 @@ class SSEManager {
     const client = new SSEClient(context);
     client.initialize();
     this.clients.set(clientId, client);
+
+
+    // Envoyer l'ID au client comme premier message
+    this.unicast(clientId, {
+      id: Date.now(),
+      type: 'clientId',
+      data: clientId
+    });
   }
-  
+
   /**
    * Supprime un client
    * @function delete
@@ -27,7 +35,7 @@ class SSEManager {
   delete(clientId) {
     this.clients.delete(clientId);
   }
- 
+
   /**
    * Supprime tous les clients
    * @function deleteAll
@@ -35,7 +43,7 @@ class SSEManager {
   deleteAll() {
     this.clients.clear();
   }
- 
+
   /**
    * Envoie un message à un seul client
    * @function unicast
@@ -52,10 +60,10 @@ class SSEManager {
       console.log('unicast SSEmanager client présent')
       client.send(message);
     } else {
-      console.log('unicast SSEmanager, client non trouvé,', 'client id:', clientId, 'client', client )
+      console.log('unicast SSEmanager, client non trouvé,', 'client id:', clientId, 'client', client)
     }
   }
- 
+
   /**
    * Envoie un message à tout les clients
    * @function broadcast
@@ -70,7 +78,7 @@ class SSEManager {
       this.unicast(id, message);
     }
   }
- 
+
   /**
    * Envoie un message à une liste de client
    * @function multicast
@@ -86,7 +94,7 @@ class SSEManager {
       this.unicast(id, message);
     }
   }
- 
+
   /**
    * Retourne le nombre de clients connectés
    * @function count
@@ -96,5 +104,5 @@ class SSEManager {
     return this.clients.size;
   }
 }
- 
+
 module.exports = SSEManager;

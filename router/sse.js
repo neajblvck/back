@@ -11,6 +11,7 @@ const crypto = require('crypto');
 
 router.get('/', async (req, res) => {
     const sseManager = req.app.get('sseManager');
+    
     /* Notre route étant publique nous n'avons pas l'identité de l'utilisateur,
        nous générons donc un identifiant aléatoirement
      */
@@ -25,7 +26,7 @@ router.get('/', async (req, res) => {
       type: 'count',
       data: sseManager.count()
     });
-   
+
     /* en cas de fermeture de la connexion, on supprime le client de notre manager */
     req.on('close', () => {
   /* En cas de deconnexion on supprime le client de notre manager */
