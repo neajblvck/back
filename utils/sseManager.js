@@ -46,10 +46,10 @@ class SSEManager {
    * @params {string} message.data - Le contenu du message
    */
   unicast(clientId, message) {
-    console.log('unicast SSEmanager', clientId, message)
     const client = this.clients.get(clientId);
-    console.log('les clients', this.clients)
+    console.log('client non trouvé', client)
     if (client) {
+      console.log('unicast SSEmanager client présent:', client, message)
       client.send(message);
     }
   }
