@@ -17,7 +17,7 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
             }
         }
 
-        console.log(paymentIntent.status)
+
 
         const orderDAO = new OrderDAO(tenantId)
         const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
@@ -26,15 +26,13 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
 
         if (idSSE) {
             // Envoi d'une notification SSE au client spécifique
+            console.log('idSSE trouvé go SSEMANAGER', idSSE)
             sseManager.unicast(idSSE, {
               id: Date.now(),
               type: 'payment-update',
               data: { status: 'succeeded', message: 'Votre paiement a été validé.' }
             });
           }
-
-
-        console.log(updateOrder)
     } catch (error) {
         console.error(`Erreur dans handlePaymentIntentSucceeded: ${error.message}`);
         // Gestion des erreurs supplémentaires si nécessaire
