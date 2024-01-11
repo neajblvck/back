@@ -48,8 +48,8 @@ class SSEManager {
   unicast(clientId, message) {
     console.log('unicast SSEmanager', clientId, message)
     const client = this.clients.get(clientId);
+    console.log('les clients', this.clients)
     if (client) {
-        console.log('client trouvé')
       client.send(message);
     }
   }
