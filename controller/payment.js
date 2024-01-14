@@ -27,17 +27,14 @@ exports.createPaymentIntent = async (req, res) => {
 
 
     const paymentIntent = await stripeService.createTerminalPaymentIntent(tenantId, accountId, amount, currency, idSSE);
-    
-    
-    const ticketData = {
-        shopCartData,
-        orderType,
-        callbackID,
-        totalAmount,
-    }
 
     const orderData = {
-        ticketData: ticketData,
+        ticketData: {
+            shopCartData,
+            orderType,
+            callbackID,
+            totalAmount,
+        },
         accountId: accountId,
         amount: amount,
         paymentIntentId: paymentIntent.id,
@@ -50,6 +47,7 @@ exports.createPaymentIntent = async (req, res) => {
     }
     const orderDAO = new OrderDAO(tenantId)
     const newOrder = await orderDAO.saveOrder(orderData)
+    console.log(newOrder)
 
     const paymentStatus = await stripeService.processPayment(accountId, tmr, paymentIntent.id, currency)
 
