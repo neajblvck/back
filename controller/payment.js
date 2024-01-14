@@ -10,10 +10,6 @@ exports.createPaymentIntent = async (req, res) => {
     const tenantId = req.auth.tenantId
 
     const { shopCartData, orderType, callbackID, idSSE } = req.body
-    console.log('shopcartdata', shopCartData)
-    console.log('callbackID', callbackID)
-    console.log('orderType', orderType)
-    console.log('orderType', orderType)
 
     const productIds = shopCartData.map(item => item._id);
     const productDAO = new ProductDAO(tenantId);

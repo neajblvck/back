@@ -22,7 +22,7 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
         const orderDAO = new OrderDAO(tenantId)
 
         const orderDataFromDB = await orderDAO.findOrderByPi(paymentIntent.id)
-        const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
+        await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
 
 
         const sseManager = req.app.get('sseManager');
@@ -41,6 +41,8 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
             printerIP: '192.168.1.37'
         }
         const ticketData = orderDataFromDB.ticketData
+        console.log('ticketData', ticketData)
+        console.log('orderDataFromDB' , orderDataFromDB)
         await printService.printOrder(printConfig, ticketData);
 
     } catch (error) {

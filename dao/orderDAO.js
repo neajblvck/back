@@ -76,7 +76,7 @@ class orderDAO {
             return await this.OrderModel.findOne({ paymentIntentId: pi })
         } catch (error) {
             // Gérer l'erreur spécifiquement
-
+            console.log(error)
             throw error;
         }
     }
