@@ -4,12 +4,17 @@ const Tenant = require('../models/tenant'); ``
 const ProductDAO = require('../dao/productDAO');
 const OrderDAO = require('../dao/orderDAO');
 const { calculTotalAmountFromDB } = require('../utils/shopCartUtils.js');
+const printService = require('../service/printService');
 
 exports.createPaymentIntent = async (req, res) => {
     const tenantId = req.auth.tenantId
 
-    const { shopCartData, orderType, idSSE } = req.body
-    console.log('createPi controller:', idSSE)
+    const { shopCartData, orderType, callbackID, idSSE } = req.body
+    console.log('shopcartdata', shopCartData)
+    console.log('callbackID', callbackID)
+    console.log('orderType', orderType)
+    console.log('orderType', orderType)
+
     const productIds = shopCartData.map(item => item._id);
     const productDAO = new ProductDAO(tenantId);
     const productsFromDB = await productDAO.findManyProduct(productIds)
@@ -26,10 +31,19 @@ exports.createPaymentIntent = async (req, res) => {
 
 
     const paymentIntent = await stripeService.createTerminalPaymentIntent(tenantId, accountId, amount, currency, idSSE);
+    
+    
+    const ticketData = {
+        shopCartData,
+        orderType,
+        callbackID,
+        totalAmount,
+    }
+
     const orderData = {
+        ticketData: ticketData,
         accountId: accountId,
-        amount: totalAmount,
-        orderType: orderType,
+        amount: amount,
         paymentIntentId: paymentIntent.id,
         paymentIntent:
         {
@@ -42,6 +56,7 @@ exports.createPaymentIntent = async (req, res) => {
     const newOrder = await orderDAO.saveOrder(orderData)
 
     const paymentStatus = await stripeService.processPayment(accountId, tmr, paymentIntent.id, currency)
+
     
     res.status(200).json({
         paymentIntentId: paymentIntent.id,

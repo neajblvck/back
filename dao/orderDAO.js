@@ -71,20 +71,12 @@ class orderDAO {
             }
         }
     }
-    async findCategory(categoryId) {
-        const productModelName = `Product_${this.tenantId}`;
-
+    async findOrderByPi(pi) {
         try {
-            return await this.CategoryModel.findOne({ _id: categoryId })
-                .populate({
-                    path: 'products',
-                    model: productModelName // Assurez-vous que ce modèle est correctement enregistré
-                });
+            return await this.OrderModel.findOne({ paymentIntentId: pi })
         } catch (error) {
             // Gérer l'erreur spécifiquement
-            if (!mongoose.modelNames().includes(productModelName)) {
-                return await this.CategoryModel.findOne({ _id: categoryId });
-            }
+
             throw error;
         }
     }

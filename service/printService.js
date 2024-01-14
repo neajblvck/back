@@ -2,14 +2,14 @@ const escpos = require('escpos');
 escpos.USB = require('escpos-usb');
 escpos.Network = require('escpos-network');
 
-async function printOrder(orderData, connectionType) {
+async function printOrder(printConfig, ticketData) {
   let device;
 
   // Choisir le dispositif en fonction du type de connexion
-  if (connectionType === 'USB') {
+  if (printConfig.connectionType === 'USB') {
     device = new escpos.USB();
-  } else if (connectionType === 'Network') {
-    device = new escpos.Network(orderData.printerIP); // Assurez-vous que l'adresse IP est fournie dans orderData
+  } else if (printConfig.connectionType === 'Network') {
+    device = new escpos.Network(printConfig.printerIP); // Assurez-vous que l'adresse IP est fournie dans printConfig
   } else {
     throw new Error('Type de connexion non supporté');
   }
@@ -19,7 +19,7 @@ async function printOrder(orderData, connectionType) {
 
   try {
     await openDevice(device);
-    printContent(printer, orderData);
+    printKitchenTicket(printer, ticketData);
     printer.cut().close();
   } catch (error) {
     console.error('Erreur lors de l\'impression :', error);
@@ -40,33 +40,36 @@ async function openDevice(device) {
   });
 }
 
-function printContent(printer, orderData) {
+function printKitchenTicket(printer, ticketData) {
   // Impression du contenu de la commande
   printer
   .align('ct')
   .style('b') // Style en gras et souligné pour le titre
+  
   .size(1, 1)
-  .size(2, 4)
-  .text('______')
-  .text(`${orderData.orderNumber}`)
-  .text('______')
-  .size(1, 1)
+  .text('-------------------')
+  .size(1, 3)
+  .text(`COMMANDE ${ticketData.callbackID}`)
   .style('b') // Appliquer le style gras
-  .text(`${orderData.orderType}`)
+  .size(1, 1)
+  .text('-------------------')
+  .text(`${ticketData.orderType}`)
   .control('lf')
   .style('normal'); // Retour au style normal pour le reste du texte
 
-  orderData.products.forEach(product => {
+  ticketData.shopCartData.forEach(product => {
     printer
       .align('lt')
       .style('b')
       .size(1, 1)
       .style('normal')
       .control('lf')
-      .text(`x${product.quantity} ${product.name.toUpperCase()}`)
+      .text(`x${product.quantity} ${product.nameProduct.toUpperCase()}`)
       .size(1, 1)
-    product.customizations.forEach(custom => {
-      printer.text(`   - ${custom}`);
+    product.selectedOptions.forEach(option => {
+      option.choices.forEach(choice =>{
+        printer.text(`   - ${choice.name}`);
+      } )
     });
   });
 }

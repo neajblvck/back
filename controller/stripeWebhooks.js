@@ -1,5 +1,5 @@
 const OrderDAO = require('../dao/orderDAO');
-
+const printService = require('../service/printService');
 
 // Controllers pour les différents types d'événements Stripe
 
@@ -20,6 +20,8 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
 
 
         const orderDAO = new OrderDAO(tenantId)
+
+        const orderDataFromDB = await orderDAO.findOrderByPi(paymentIntent.id)
         const updateOrder = await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
 
 
@@ -32,6 +34,15 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
               data: { status: 'succeeded', message: 'Votre paiement a été validé.' }
             });
           }
+
+        
+        const printConfig = {
+            connectionType: 'Network',
+            printerIP: '192.168.1.37'
+        }
+        const ticketData = orderDataFromDB.ticketData
+        await printService.printOrder(printConfig, ticketData);
+
     } catch (error) {
         console.error(`Erreur dans handlePaymentIntentSucceeded: ${error.message}`);
         // Gestion des erreurs supplémentaires si nécessaire
