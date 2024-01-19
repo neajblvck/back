@@ -3,6 +3,7 @@ escpos.USB = require('escpos-usb');
 escpos.Network = require('escpos-network');
 
 async function printOrder(printConfig, ticketData) {
+  console.log(printConfig)
   let device;
 
   // Choisir le dispositif en fonction du type de connexion

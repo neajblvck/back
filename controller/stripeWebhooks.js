@@ -36,9 +36,9 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
           }
 
         
-        const printConfig = {
+          const printConfig = {
             connectionType: 'Network',
-            printerIP: '192.168.1.37'
+            printerIP: '192.168.1.89'
         }
         const ticketData = orderDataFromDB.ticketData
         console.log('ticketData', ticketData)
