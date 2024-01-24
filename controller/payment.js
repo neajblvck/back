@@ -47,7 +47,6 @@ exports.createPaymentIntent = async (req, res) => {
     }
     const orderDAO = new OrderDAO(tenantId)
     const newOrder = await orderDAO.saveOrder(orderData)
-    console.log(newOrder)
 
     const paymentStatus = await stripeService.processPayment(accountId, tmr, paymentIntent.id, currency)
 

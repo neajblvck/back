@@ -5,6 +5,12 @@ const OrderSchema = new mongoose.Schema({
         type: String, 
         required: true
     },
+    ticketData: {
+        shopCartData: Array,
+        orderType: String,
+        callbackID: String,
+        totalAmount: Number
+    },
     paymentIntentId: String,
     paymentIntent: {
         stripeApplication: String,

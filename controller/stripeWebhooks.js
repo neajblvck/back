@@ -25,25 +25,26 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
         await orderDAO.updateOrderByPi(paymentIntent.id, orderData, {new:true});
 
 
+        const printConfig = {
+            connectionType: 'Network',
+            printerIP: '192.168.1.89'
+        }
+        const ticketData = orderDataFromDB.ticketData
+
+        // renvoit un le status validé du paiement au client (via son SSE)
         const sseManager = req.app.get('sseManager');
         if (idSSE) {
             // Envoi d'une notification SSE au client spécifique
             sseManager.unicast(idSSE, {
               id: Date.now(),
               type: 'payment-update',
+              ticketData: orderDataFromDB.ticketData,
+              printerIP: printConfig.printerIP,
               data: { status: 'succeeded', message: 'Votre paiement a été validé.' }
             });
           }
 
-        
-          const printConfig = {
-            connectionType: 'Network',
-            printerIP: '192.168.1.89'
-        }
-        const ticketData = orderDataFromDB.ticketData
-        console.log('ticketData', ticketData)
-        console.log('orderDataFromDB' , orderDataFromDB)
-        await printService.printOrder(printConfig, ticketData);
+        // await printService.printOrder(printConfig, ticketData);
 
     } catch (error) {
         console.error(`Erreur dans handlePaymentIntentSucceeded: ${error.message}`);

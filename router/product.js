@@ -29,7 +29,6 @@ router.delete('/:id', authMiddleware, productController.deleteProduct);
 
 // Routes pour les Catégories
 
-// router.put('/order/:id', productController.updateProductOrder);
 // router.put('/products/move', productController.moveProductsToCategory);
 // router.put('/products/copy', productController.copyProductsToCategory);
 // router.put('/products/remove', productController.removeProductFromCategory);
