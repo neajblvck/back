@@ -20,7 +20,7 @@ exports.createPaymentIntent = async (req, res) => {
     const totalAmount = await calculTotalAmountFromDB(shopCartData, productsFromDB)
     const tenant = await Tenant.findById(tenantId)
 
-    const amount = totalAmount*100
+    const amount = totalAmount
     const tmr = tenant.stripeTmr || 'tmr_FX8QTwhRuXzLuN';
     const accountId = tenant.stripeAccountId || 'acct_1OMHyO2emXQAcOi8';
     const currency = tenant.stripeCurrency || 'eur'

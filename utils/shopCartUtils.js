@@ -117,7 +117,8 @@ const calculTotalAmountFromDB = (shopCart, productsFromDb) => {
         totalAmount += itemTotal;
     });
 
-    return totalAmount / 100; // Convertir le total en euros
+console.log('totalAmount', totalAmount)
+    return totalAmount; // Convertir le total en euros
 };
 
 module.exports = {
