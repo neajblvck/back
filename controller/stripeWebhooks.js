@@ -27,7 +27,7 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
 
         const printConfig = {
             connectionType: 'Network',
-            printerIP: '192.168.1.89'
+            printerIP: '192.168.1.45'
         }
         const ticketData = orderDataFromDB.ticketData
 
@@ -38,9 +38,12 @@ const handlePaymentIntentSucceeded = async (req, paymentIntent) => {
             sseManager.unicast(idSSE, {
               id: Date.now(),
               type: 'payment-update',
-              ticketData: orderDataFromDB.ticketData,
-              printerIP: printConfig.printerIP,
-              data: { status: 'succeeded', message: 'Votre paiement a été validé.' }
+              data: { 
+                status: 'succeeded', 
+                message: 'Votre paiement a été validé.', 
+                ticketData: orderDataFromDB.ticketData,
+                printerIP: printConfig.printerIP, 
+            }
             });
           }
 
